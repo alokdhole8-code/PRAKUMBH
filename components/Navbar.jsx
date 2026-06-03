@@ -142,7 +142,7 @@ export default function Navbar({
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
 
-  const desktopLeftLinks = ["SHOP", "COLLECTION"];
+  const desktopLeftLinks = ["SHOP"];
 
   return (
     <>
