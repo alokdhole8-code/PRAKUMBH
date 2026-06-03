@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap');
+
+@import "tailwindcss";
+
+@import 'swiper/css';
+@import 'swiper/css/effect-fade';
+@import 'swiper/css/pagination';
+@import 'swiper/css/free-mode';
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html,
+body{
+  width:100%;
+  overflow-x:hidden;
+  background:black;
+}
+@media (max-width: 1024px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  button {
+    min-height: 44px;
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+button {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+motion-div {
+  will-change: transform, opacity;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {  
+  overflow-x: hidden;
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+} 
+.gpu-layer {
+  will-change: opacity;
+}
+
