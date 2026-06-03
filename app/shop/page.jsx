@@ -170,7 +170,7 @@ function CartDrawer({
     right: 0,
               width: 380,
               maxWidth: "100%",
-              height: "100vh",
+              height: "100dvh",
               background: "#fff",
               zIndex: 2147483647,
               padding: "18px 24px",
@@ -199,13 +199,15 @@ function CartDrawer({
 
             {cartItems.length > 0 ? (
               <>
-                <div
-                  style={{
-                    marginTop: 28,
-                    overflowY: "auto",
-                    flex: 1,
-                  }}
-                >
+<div
+  style={{
+    marginTop: 28,
+    overflowY: "auto",
+    flex: 1,
+    minHeight: 0,
+    paddingBottom: 20,
+  }}
+>
                   {cartItems.map(
                     (item, i) => (
                       <div
@@ -421,11 +423,15 @@ ci.selectedSize === item.selectedSize
                     )
                   )}
                 </div>
-                <div
+<div
   style={{
     borderTop: "1px solid #ececec",
-    ppaddingTop: 24,
-marginTop: 0,
+    paddingTop: 24,
+    marginTop: 0,
+    position: "sticky",
+    bottom: 0,
+    background: "#fff",
+    zIndex: 50,
   }}
 >
   <div
@@ -840,7 +846,7 @@ useEffect(() => {
               left: 0,
               width: "92%",
               maxWidth: 360,
-              height: "100vh",
+              height: "100dvh",
               background: "#fff",
               zIndex: 9999999,
               overflowY: "auto",

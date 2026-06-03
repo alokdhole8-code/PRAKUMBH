@@ -1276,20 +1276,19 @@ useEffect(() => {
           ease: [0.16, 1, 0.3, 1],
         }}
         style={{
-          position: "fixed",
-          top: 0,
-          paddingTop: 0,
-          right: 0,
-          width: 380,
-          maxWidth: "100%",
-          height: "100vh",
-          background: "#fff",
-          zIndex: 2147483647,
-          padding: "18px 24px 18px",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+  position: "fixed",
+  top: 0,
+  right: 0,
+  width: 380,
+  maxWidth: "100%",
+  height: "100dvh",
+  background: "#fff",
+  zIndex: 2147483647,
+  padding: "18px 24px calc(18px + env(safe-area-inset-bottom))",
+  display: "flex",
+  flexDirection: "column",
+}}
+>
         {/* CLOSE */}
         <button
           onClick={() => setCartOpen(false)}
@@ -1543,13 +1542,17 @@ alignItems: "flex-start",
     </div>
 
     {/* BUY NOW SECTION */}
-    <div
-      style={{
-        borderTop: "1px solid #ececec",
-        paddingTop: 18,
-        marginTop: 10,
-      }}
-    >
+<div
+  style={{
+    borderTop: "1px solid #ececec",
+    paddingTop: 18,
+    marginTop: 10,
+    position: "sticky",
+    bottom: 0,
+    background: "#fff",
+    zIndex: 20,
+  }}
+>
       <div
         style={{
           display: "flex",

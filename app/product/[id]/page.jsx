@@ -139,18 +139,18 @@ function CartDrawer({
               zIndex: 999998,
             }}
           />
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.35, ease: EASE }}
-            style={{
-              position: "fixed",
-              top: 0,
-              right: 0,
-              width: 380,
-              maxWidth: "100%",
-              height: "100vh",
+<motion.div
+  initial={{ x: "100%" }}
+  animate={{ x: 0 }}
+  exit={{ x: "100%" }}
+  transition={{ duration: 0.35, ease: EASE }}
+  style={{
+    position: "fixed",
+    top: 0,
+    right: 0,
+    width: 380,
+    maxWidth: "100%",
+    height: "100dvh",
               background: "#fff",
               zIndex: 999999,
               padding: "18px 24px",
@@ -175,7 +175,15 @@ function CartDrawer({
 
             {cartItems.length > 0 ? (
               <>
-                <div style={{ marginTop: 40, overflowY: "auto", flex: 1 }}>
+                <div
+  style={{
+    marginTop: 40,
+    overflowY: "auto",
+    flex: 1,
+    minHeight: 0,
+    paddingBottom: 20,
+  }}
+>
                   {cartItems.map((item, i) => (
                     <div
                       key={i}
@@ -382,13 +390,17 @@ ci.selectedSize === item.selectedSize
                     </div>
                   ))}
                 </div>
-                <div
-                  style={{
-                    borderTop: "1px solid #ececec",
-                    paddingTop: 18,
-                    marginTop: 10,
-                  }}
-                >
+<div
+  style={{
+    borderTop: "1px solid #ececec",
+    paddingTop: 18,
+    marginTop: 10,
+    position: "sticky",
+    bottom: 0,
+    background: "#fff",
+    zIndex: 10,
+  }}
+>
                   <div
                     style={{
                       display: "flex",
