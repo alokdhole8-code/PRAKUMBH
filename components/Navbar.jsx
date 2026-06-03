@@ -15,8 +15,7 @@ const EASE   = [0.16, 1, 0.3, 1];
 // ─── NAV DATA ─────────────────────────────────────────────────────────────────
 const MAIN_LINKS = [
   { label: "SHOP", href: "/shop" },
-  { label: "COLLECTION", href: "/collection" },
-];
+ ];
 
 const CATEGORIES = [
   "T-Shirt",
