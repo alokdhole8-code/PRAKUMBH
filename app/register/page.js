@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Navbar, { AnnouncementBar } from "@/components/Navbar";
 import { GOLD, NAVY } from "@/app/data/products";
-
+import CryptoJS from "crypto-js";
 // ─── AUTH HELPERS (inline for self-containment) ───────────────────────────────
 function getUsers() {
   try {
@@ -136,6 +136,10 @@ export default function RegisterPage() {
 
       const users = getUsers();
       const emailLower = form.email.trim().toLowerCase();
+
+      const hashedPassword =
+  CryptoJS.SHA256(form.password).toString();
+
       const exists = users.some((u) => u.email.toLowerCase() === emailLower);
 
       if (exists) {
@@ -148,7 +152,7 @@ export default function RegisterPage() {
         id: `u_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         name: form.name.trim(),
         email: emailLower,
-        password: form.password,
+password: form.password,
         createdAt: new Date().toISOString(),
         orders: [],
       };

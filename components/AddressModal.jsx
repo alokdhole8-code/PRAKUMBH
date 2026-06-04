@@ -10,7 +10,7 @@ const WHATSAPP_NUMBER = "918766599895"; // Replace with your number
 
 // ─── Utility: build WhatsApp message ──────────────────────────────────────────
 function buildWhatsAppMessage({ name, phone, address, city, pincode, productName, color, size, quantity, total }) {
-  return `🛒 Product Selected You’re just one step away from placing your order.  Follow the next steps here on WhatsApp to complete your order.  - PRAKUMBH Clothing
+  return `🛒 Hi, I have placed an order. Please confirm.
 
 Name: ${name}
 Phone: ${phone}

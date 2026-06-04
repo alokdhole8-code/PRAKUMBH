@@ -1,3 +1,5 @@
+import CryptoJS from "crypto-js";
+
 export function getUsers() {
   try {
     return JSON.parse(localStorage.getItem("prakumbh_users")) || [];
@@ -12,15 +14,17 @@ export function saveUsers(users) {
 
 export function register(name, email, password) {
   const users = getUsers();
+const hashedPassword =
+  CryptoJS.SHA256(password).toString();
 
-  const user = {
-    id: `u_${Date.now()}`,
-    name,
-    email: email.toLowerCase(),
-    password,
-    createdAt: new Date().toISOString(),
-    orders: [],
-  };
+const user = {
+  id: `u_${Date.now()}`,
+  name,
+  email: email.toLowerCase(),
+password: form.password,
+  createdAt: new Date().toISOString(),
+  orders: [],
+};
 
   users.push(user);
   saveUsers(users);
@@ -37,11 +41,14 @@ export function register(name, email, password) {
 export function login(email, password) {
   const users = getUsers();
 
-  const user = users.find(
-    (u) =>
-      u.email.toLowerCase() === email.toLowerCase() &&
-      u.password === password
-  );
+const hashedPassword =
+  CryptoJS.SHA256(password).toString();
+
+const user = users.find(
+  (u) =>
+    u.email.toLowerCase() === email.toLowerCase() &&
+    u.password === hashedPassword
+);
 
   if (!user) return null;
 

@@ -2114,7 +2114,7 @@ items: cartItems.map(item => ({
   }
 }
 
-    const message = "Product Selected You’re just one step away from placing your order.  Follow the next steps here on WhatsApp to complete your order.  - PRAKUMBH Clothing";
+    const message = "Hi, I have placed an order. Please confirm.";
 
     const orderPayload = {
   orderId: "PK" + Date.now(),
@@ -2155,19 +2155,23 @@ product: cartItems
 const whatsappUrl =
   `https://wa.me/918766599895?text=${encodeURIComponent(message)}`;
 
-window.open(whatsappUrl, "_blank");
-
-fetch(
-  "https://script.google.com/macros/s/AKfycbxYG8KeTKrt2sLhhrCyJ52m0E5XWUTzZYsYcmObNoDJm5q_ol_jXv_1XIM-lnTo-YsrLg/exec",
-  {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "text/plain",
-    },
-    body: JSON.stringify(orderPayload),
-  }
-).catch(console.error);
+const win = window.open(
+  whatsappUrl,
+  "_blank"
+);
+setTimeout(() => {
+  fetch(
+    "https://script.google.com/macros/s/AKfycbxYG8KeTKrt2sLhhrCyJ52m0E5XWUTzZYsYcmObNoDJm5q_ol_jXv_1XIM-lnTo-YsrLg/exec",
+    {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain",
+      },
+      body: JSON.stringify(orderPayload),
+    }
+  ).catch(console.error);
+}, 0);
  
  
     setAddressOpen(false);

@@ -192,7 +192,7 @@ const router = useRouter();
           position: "relative",
           overflow: "hidden",
           background: "#f4f4f4",
-          marginBottom: 24,
+          marginBottom: 24  ,
         }}
       >
         {/* TAG */}
@@ -410,7 +410,7 @@ function FeaturedProducts({
         <div
   style={{
     marginTop: 0,
-    marginBottom: 56,
+    marginBottom: 20,
   }}
 >
           <div
@@ -692,7 +692,7 @@ function NewArrivals({
         <div
   style={{
     marginTop: 0,
-    marginBottom: 56,
+    marginBottom: 20,
   }}
 >
           <div
@@ -859,7 +859,7 @@ maxWidth:
     height: 56,
     display: "flex",
     alignItems: "center",
-    marginBottom: 20, // gap
+    marginBottom: 60, // gap
   }}
 >
       <style>{`
@@ -1908,7 +1908,7 @@ handleBuyNow({
   onClick={() => {
     if (!isFormValid) return;
 
-    const message = "Product Selected You’re just one step away from placing your order.  Follow the next steps here on WhatsApp to complete your order.  - PRAKUMBH Clothing";
+    const message = "Hi, I have placed an order. Please confirm.";
 
 
     const currentUser = JSON.parse(
@@ -2014,6 +2014,11 @@ const orderPayload = {
     const whatsappUrl =
       `https://wa.me/918766599895?text=${encodeURIComponent(message)}`;
 
+      const win = window.open(
+  whatsappUrl,
+  "_blank"
+);
+
     setAddressOpen(false);
     setCartOpen(false);
     setCartItems([]);
@@ -2026,20 +2031,21 @@ const orderPayload = {
     setPincode("");
 
 
-    fetch(
-  "https://script.google.com/macros/s/AKfycbxYG8KeTKrt2sLhhrCyJ52m0E5XWUTzZYsYcmObNoDJm5q_ol_jXv_1XIM-lnTo-YsrLg/exec",
-  {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "text/plain",
-    },
-    body: JSON.stringify(orderPayload),
-  }
-).catch(console.error);
+setTimeout(() => {
+  fetch(
+    "https://script.google.com/macros/s/AKfycbxYG8KeTKrt2sLhhrCyJ52m0E5XWUTzZYsYcmObNoDJm5q_ol_jXv_1XIM-lnTo-YsrLg/exec",
+    {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain",
+      },
+      body: JSON.stringify(orderPayload),
+    }
+  ).catch(console.error);
+}, 0);
 
-
-    window.open(whatsappUrl, "_blank");
+ 
   }}
 
   
