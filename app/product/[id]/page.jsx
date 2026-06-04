@@ -1256,14 +1256,18 @@ setTimeout(() => {
                           minWidth: 30,
                           minHeight: 30,
                           borderRadius: "50%",
-                          background:
-                            c === "black"
-                              ? "#000000"
-                              : c === "blue"
-                              ? "#256D85"
-                              : c === "grey"
-                              ? "#8E8E8E"
-                              : "#E9E9E9",
+background:
+  c === "black"
+    ? "#000000"
+    : c === "blue"
+    ? "#256D85"
+    : c === "pink"
+    ? "#B04A7A"
+    : c === "green"
+    ? "#8A9A5B"
+    : c === "grey"
+    ? "#8E8E8E"
+    : "#E9E9E9",
                           border:
                             selectedColor === c
                               ? `2px solid ${NAVY}`

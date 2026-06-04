@@ -18,6 +18,12 @@ const MILITARY_CATEGORIES = [
   label: "All",
     image: "/assets/all.jpeg",
 },
+
+{
+  id: "unfiltered",
+  label: "UNFILTERED",
+  image: "/assets/unfiltered.WEBP",
+},
   {
     id: "shivaji",
     label: "MARATHA LEGENDS",
@@ -1072,8 +1078,33 @@ useEffect(() => {
     const [selectedColor, setSelectedColor] =
       useState(product.defaultColor || "black");
 
-    const imageSrc =
-      product.images?.[selectedColor]?.back;
+const FRONT_ONLY_PRODUCTS = [
+ "guardian-of-swarajya-new",
+  "anant-shiv",
+  "destined-for-glory",
+  "dev-maza-raygadi",
+  "punyashlok-ahilyadevi",
+   "legacy-of-valor",
+  "one-and-only",
+  "roar",
+  "sahyadricha-wagh",
+
+  "the-unsurrendered",
+  "unbroken-maratha",
+  "war-in-my-veins",
+  "warrior",
+  "unstoppable",
+  "flag-pride",
+  "my-soul-my-king",
+  "garza-maratha",
+  ];
+
+const imageSrc =
+  FRONT_ONLY_PRODUCTS.includes(product.id)
+    ? product.images?.[selectedColor]?.front
+    : product.images?.[selectedColor]?.back;
+
+    
     const discount = product.oldPrice
         ? Math.round(((parsePrice(product.oldPrice) - parsePrice(product.price)) / parsePrice(product.oldPrice)) * 100)
         : 0;
@@ -1147,14 +1178,18 @@ fontWeight: 600, letterSpacing: "0.03em", color: "#111", marginBottom: 6, lineHe
           width: 13,
           height: 13,
           borderRadius: "50%",
-          background:
-            colorKey === "black"
-              ? "#111"
-              : colorKey === "blue"
-              ? "#2563EB"
-              : colorKey === "grey"
-              ? "#6B7280"
-              : "#F5F5F5",
+background:
+  colorKey === "black"
+    ? "#111"
+    : colorKey === "blue"
+    ? "#2563EB"
+    : colorKey === "pink"
+    ? "#B04A7A"
+    : colorKey === "green"
+    ? "#8A9A5B"
+    : colorKey === "grey"
+    ? "#6B7280"
+    : "#F5F5F5",
 
   border:
   selectedColor === colorKey
@@ -1211,7 +1246,19 @@ fontWeight: 600, letterSpacing: "0.03em", color: "#111", marginBottom: 6, lineHe
     // ─── ROOT PAGE ────────────────────────────────────────────────────────────────
 function ShopPageContent() {
 const [addressOpen, setAddressOpen] = useState(false);
+const [isMobile, setIsMobile] = useState(false);
 
+useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth < 768);
+  };
+
+  checkMobile();
+
+  window.addEventListener("resize", checkMobile);
+  return () =>
+    window.removeEventListener("resize", checkMobile);
+}, []);
 const {
   cartOpen,
   setCartOpen,
@@ -1294,10 +1341,19 @@ useEffect(() => {
 
         // Category filter — maps by product.category or product.tag fallback
 // Category filter
-if (
-  activeCategory !== "all" &&
-  activeCategory !== "shivaji"
-) {
+if (activeCategory === "unfiltered") {
+  list = list.filter(
+    (p) => p.id === "swami-samarth"
+  );
+}
+else if (activeCategory === "shivaji") {
+  list = list.filter(
+    (p) =>
+      p.id !== "swami-samarth" &&
+      p.id !== "blazing-mavala"
+  );
+}
+else if (activeCategory !== "all") {
   list = list.filter(
     (p) =>
       (p.category || "")
@@ -1601,10 +1657,7 @@ if (
 <div
   style={{
     display: "grid",
-    gridTemplateColumns:
-      window.innerWidth < 480
-        ? "1fr"
-        : "1fr 1fr",
+gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
     gap: 12,
     width: "100%",
   }}
@@ -1788,7 +1841,7 @@ Number(
     const whatsappUrl =
       `https://wa.me/918766599895?text=${encodeURIComponent(message)}`;
 
-      const win = window.open(
+      window.open(
   whatsappUrl,
   "_blank"
 );

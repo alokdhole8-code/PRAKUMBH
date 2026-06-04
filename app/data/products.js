@@ -1,6 +1,35 @@
 // ─── SHARED PRODUCTS DATA ────────────────────────────────────────────────────
 // Isko import karo homepage aur product page dono mein
+const createProduct = (id, name, folder, hasBlue = true) => ({
+  id,
+  name,
+  price: "₹399.00",
+  oldPrice: "₹1299.00",
+  defaultColor: "black",
 
+  colors: hasBlue
+    ? ["black", "blue", "white"]
+    : ["black", "white"],
+
+  images: {
+    black: {
+      front: `/clothes01/${folder}/black-front.webp`,
+      back: `/clothes01/${folder}/black-back.webp`,
+    },
+
+    ...(hasBlue && {
+      blue: {
+        front: `/clothes01/${folder}/blue-front.webp`,
+        back: `/clothes01/${folder}/blue-back.webp`,
+      },
+    }),
+
+    white: {
+      front: `/clothes01/${folder}/white-front.webp`,
+      back: `/clothes01/${folder}/white-back.webp`,
+    },
+  },
+});
 export const GOLD = "#d4af37";
 export const NAVY = "#022658";
 export const LIGHT = "#f7f7f7";
@@ -286,4 +315,141 @@ export const products = [
       },
     },
   },
+
+
+  createProduct("anant-shiv", "Anant Shiv", "Anant Shiv", false),
+createProduct("destined-for-glory", "Destined For Glory", "Destined for Glory", false),
+createProduct("dev-maza-raygadi", "Dev Maza Raygadi", "Dev Maza Raygadi", false),
+
+createProduct("fearless", "FEARLESS", "FEARLESS"),
+createProduct("garza-maratha", "Garza Maratha", "Garza Maratha"),
+
+createProduct(
+  "guardian-of-swarajya-new",
+  "Guardian Of Swarajya",
+  "Guaardian of Swarajya"
+),
+
+createProduct(
+  "legacy-never-dies",
+  "Legacy Never Dies",
+  "Legacy Never Dies"
+),
+
+createProduct(
+  "legacy-of-valor",
+  "Legacy Of Valor",
+  "Legacy of Valor"
+),
+
+createProduct(
+  "one-and-only",
+  "One And Only",
+  "One And Only"
+),
+
+createProduct(
+  "punyashlok-ahilyadevi",
+  "Punyashlok Ahilyadevi",
+  "Punyashlok Ahilyadevi",
+  false
+),
+
+createProduct(
+  "ranaragini",
+  "Ranaragini",
+  "Ranaragini"
+),
+
+createProduct(
+  "rise-to-victory",
+  "Rise To Victory",
+  "Rise to Victory"
+),
+
+createProduct(
+  "roar",
+  "Roar",
+  "Roar"
+),
+{
+  id: "sahyadricha-wagh",
+  name: "Sahyadricha Wagh",
+  price: "₹399.00",
+  oldPrice: "₹1299.00",
+  defaultColor: "black",
+
+  colors: ["black", "blue", "pink","green"],
+
+  images: {
+    black: {
+      front: "/clothes01/Sahyadricha Wagh/black-front.webp",
+      back: "/clothes01/Sahyadricha Wagh/black-back.webp",
+    },
+
+    blue: {
+      front: "/clothes01/Sahyadricha Wagh/blue-front.webp",
+      back: "/clothes01/Sahyadricha Wagh/blue-back.webp",
+    },
+
+pink: {
+    front: "/clothes01/Sahyadricha Wagh/pink-front.webp",
+    back: "/clothes01/Sahyadricha Wagh/pink-front.webp",
+  },
+
+  green: {
+    front: "/clothes01/Sahyadricha Wagh/green-back.webp",
+    back: "/clothes01/Sahyadricha Wagh/green-back.webp",
+  },
+  },
+},
+ 
+createProduct(
+  "strength",
+  "Strength",
+  "Strength"
+),
+
+createProduct(
+  "swami-samarth",
+  "Swami Samarth",
+  "Swami samarth",
+  false
+),
+
+createProduct(
+  "the-unsurrendered",
+  "The Unsurrendered",
+  "The Unsurrendered"
+),
+
+createProduct(
+  "the-vanguard",
+  "The Vanguard",
+  "The Vanguard"
+),
+
+createProduct(
+  "unbroken-maratha",
+  "Unbroken Maratha",
+  "Unbroken Maratha"
+),
+
+createProduct(
+  "unstoppable",
+  "Unstoppable",
+  "Unstoppable"
+),
+
+createProduct(
+  "war-in-my-veins",
+  "War In My Veins",
+  "War in My Veins"
+),
+
+createProduct(
+  "warrior",
+  "Warrior",
+  "Warrior"
+),
 ];

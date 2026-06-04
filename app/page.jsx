@@ -187,14 +187,14 @@ const router = useRouter();
       }}
     >
       {/* IMAGE */}
-      <div
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          background: "#f4f4f4",
-          marginBottom: 24  ,
-        }}
-      >
+<div
+  style={{
+    position: "relative",
+    overflow: "hidden",
+    background: "#f4f4f4",
+    marginBottom: 8,
+  }}
+>
         {/* TAG */}
          
 
@@ -459,33 +459,29 @@ function FeaturedProducts({
         <div style={{ position: "relative" }}>
           
           {/* LEFT BUTTON */}
-          <button
-            onClick={() => scroll("prev")}
-            style={{
-              position: "absolute",
-              left: isMobile ? 4 : -10,
-              top: "40%",
-              transform: "translateY(-50%)",
-              width: isMobile ? 42 : 54,
-height: isMobile ? 42 : 54,
-borderRadius: "999px",
-border: "1px solid rgba(255,255,255,0.08)",
-background: "rgba(10,10,10,0.92)",
-backdropFilter: "blur(10px)",
-WebkitBackdropFilter: "blur(10px)",
-color: "#fff",
-zIndex: 40,
-cursor: "pointer",
-fontSize: isMobile ? 15 : 24,
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
-boxShadow: "0 10px 30px rgba(0,0,0,0.22)",
-transition: "all 0.25s ease",
-            }}
-          >
-            ←
-          </button>
+<button
+  onClick={() => scroll("prev")}
+  style={{
+    position: "absolute",
+    left: 10,
+    top: "40%",
+    transform: "translateY(-50%)",
+    width: isMobile ? 42 : 54,
+    height: isMobile ? 42 : 54,
+    borderRadius: "999px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(10,10,10,0.92)",
+    color: "#fff",
+    zIndex: 99999,
+    cursor: "pointer",
+    fontSize: isMobile ? 15 : 24,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
+  ←
+</button>
 
           {/* RIGHT BUTTON */}
           <button
@@ -689,10 +685,10 @@ function NewArrivals({
         }}
       >
         {/* HEADER */}
-        <div
+<div
   style={{
     marginTop: 0,
-    marginBottom: 20,
+    marginBottom: 0
   }}
 >
           <div
@@ -742,7 +738,6 @@ function NewArrivals({
           
            {/* LEFT */}
 {/* LEFT */}
-{!isMobile && (
 <button
   onClick={() => scroll("prev")}
   style={{
@@ -770,7 +765,7 @@ height: isMobile ? 42 : 54,
 >
   ←
 </button>
-)}
+
            {/* RIGHT */}
 <button
   onClick={() => scroll("next")}
@@ -816,7 +811,18 @@ height: isMobile ? 42 : 54,
   paddingRight: isMobile ? 6 : 28,
 }}
           >
-            {products.slice(0,8).map((p, i) => (
+            {products
+  .filter((p) =>
+    [
+       "fearless",
+      "legacy-never-dies",
+       "rise-to-victory",
+       "the-vanguard",
+       "ranaragini",
+       "strength"
+     ].includes(p.id)
+  )
+  .map((p, i) => (
               <div
                 key={p.id}
                 style={{
