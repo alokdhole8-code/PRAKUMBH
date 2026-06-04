@@ -1908,7 +1908,7 @@ handleBuyNow({
   onClick={() => {
     if (!isFormValid) return;
 
-    const message = "Hi, I have placed an order. Please confirm.";
+    const message = "Send this message to confirm your order.";
 
 
     const currentUser = JSON.parse(

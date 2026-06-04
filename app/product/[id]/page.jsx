@@ -2114,7 +2114,7 @@ items: cartItems.map(item => ({
   }
 }
 
-    const message = "Hi, I have placed an order. Please confirm.";
+    const message = "Send this message to confirm your order.";
 
     const orderPayload = {
   orderId: "PK" + Date.now(),

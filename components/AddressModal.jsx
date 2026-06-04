@@ -10,7 +10,7 @@ const WHATSAPP_NUMBER = "918766599895"; // Replace with your number
 
 // ─── Utility: build WhatsApp message ──────────────────────────────────────────
 function buildWhatsAppMessage({ name, phone, address, city, pincode, productName, color, size, quantity, total }) {
-  return `🛒 Hi, I have placed an order. Please confirm.
+  return `🛒 Send this message to confirm your order.
 
 Name: ${name}
 Phone: ${phone}
