@@ -1712,20 +1712,22 @@ setTimeout(() => {
                         </div>
                       )}
                       <img
-                        src={p.images?.[p.defaultColor || "black"]?.back}
-                        loading="lazy"
-                        decoding="async"
-                        draggable="false"
-                        alt={p.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                          padding: "12px",
-                          display: "block",
-                          transition: "transform 0.5s ease",
-                        }}
-                      />
+  src={p.images?.[p.defaultColor || "black"]?.back}
+  loading="lazy"
+  fetchPriority="low"
+  decoding="async"
+  draggable="false"
+  alt={p.name}
+  style={{
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
+    padding: "12px",
+    display: "block",
+    transition: "transform 0.5s ease",
+    contentVisibility: "auto",
+  }}
+/>
                     </div>
                     <h3
                       style={{
