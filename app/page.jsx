@@ -13,33 +13,28 @@ import { handleBuyNow } from "@/lib/buyNow";
 const SHOP_CATEGORIES = [
   {
     id: "shivaji",
-    label: "SHIVAJI RAJE",
-    image: "/categories/shivaji.webp",
+    label: "MARATHA LEGENDS",
+    image: "/assets/shivaji.jpeg",
   },
   {
     id: "swarajya",
-    label: "HINDAVI SWARAJYA",
-    image: "/categories/shivaji.webp",
+    label: "FESTIVALS",
+    image: "/assets/fest.jpeg",
   },
   {
     id: "sambhaji",
-    label: "SAMBHAJI MAHARAJ",
-    image: "/categories/shivaji.webp",
+    label: "FORTS & GADKOT",
+    image: "/assets/gadkot.jpeg",
   },
   {
     id: "maharashtra",
-    label: "MAHARASHTRA",
-    image: "/categories/shivaji.webp",
+    label: "MAHARASHTRA PRIDE",
+    image:"/assets/maharastr.jpeg",
   },
   {
     id: "shivjayanti",
-    label: "SHIVJAYANTI",
-    image: "/categories/shivaji.webp",
-  },
-  {
-    id: "mavala",
-    label: "MAVALA",
-    image: "/categories/shivaji.webp",
+    label: "HERITAGE",
+    image: "/assets/heritage.jpeg",
   },
 ];
 const categories = [
@@ -1828,13 +1823,17 @@ handleBuyNow({
 />
 
       {/* CITY + PINCODE */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 12,
-        }}
-      >
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      window.innerWidth < 480
+        ? "1fr"
+        : "1fr 1fr",
+    gap: 12,
+    width: "100%",
+  }}
+>
 <input
   placeholder="City"
   value={city}
@@ -1911,6 +1910,107 @@ handleBuyNow({
 
     const message = "Product Selected You’re just one step away from placing your order.  Follow the next steps here on WhatsApp to complete your order.  - PRAKUMBH Clothing";
 
+
+    const currentUser = JSON.parse(
+  localStorage.getItem("prakumbh_current")
+);
+
+if (currentUser) {
+  const users =
+    JSON.parse(
+      localStorage.getItem("prakumbh_users")
+    ) || [];
+
+  const userIndex = users.findIndex(
+    (u) => u.id === currentUser.id
+  );
+
+  if (userIndex !== -1) {
+    const orderData = {
+      id: "ORD" + Date.now(),
+      date: new Date().toISOString(),
+      status: "Processing",
+
+items: cartItems.map(item => ({
+  ...item,
+  image:
+    item.images?.[
+      item.selectedColor ||
+      item.defaultColor ||
+      "black"
+    ]?.back || "",
+})),
+      total: cartItems.reduce(
+        (total, item) =>
+          total +
+          Number(
+            item.price
+              .replace("₹", "")
+              .replace(".00", "")
+          ) *
+            (item.quantity || 1),
+        0
+      ),
+
+      shippingAddress: {
+        name: fullName,
+        phone,
+        line1: address,
+        line2: landmark,
+        city,
+        pincode,
+      },
+    };
+
+    if (!users[userIndex].orders) {
+      users[userIndex].orders = [];
+    }
+
+    users[userIndex].orders.unshift(orderData);
+
+    localStorage.setItem(
+      "prakumbh_users",
+      JSON.stringify(users)
+    );
+  }
+}
+const orderPayload = {
+  orderId: "PK" + Date.now(),
+  date: new Date().toLocaleString(),
+
+  name: fullName,
+  phone,
+  address,
+  city,
+  state: "Maharashtra",
+  pincode,
+
+  product: cartItems
+    .map(
+      (item) =>
+        `${item.name} | Color: ${item.selectedColor} | Size: ${item.selectedSize}`
+    )
+    .join(" || "),
+
+  quantity: cartItems.reduce(
+    (t, i) => t + (i.quantity || 1),
+    0
+  ),
+
+  amount: cartItems.reduce(
+    (t, i) =>
+      t +
+      Number(
+        i.price
+          .replace("₹", "")
+          .replace(".00", "")
+      ) *
+        (i.quantity || 1),
+    0
+  ),
+};
+
+
     const whatsappUrl =
       `https://wa.me/918766599895?text=${encodeURIComponent(message)}`;
 
@@ -1925,8 +2025,24 @@ handleBuyNow({
     setCity("");
     setPincode("");
 
+
+    fetch(
+  "https://script.google.com/macros/s/AKfycbxYG8KeTKrt2sLhhrCyJ52m0E5XWUTzZYsYcmObNoDJm5q_ol_jXv_1XIM-lnTo-YsrLg/exec",
+  {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "text/plain",
+    },
+    body: JSON.stringify(orderPayload),
+  }
+).catch(console.error);
+
+
     window.open(whatsappUrl, "_blank");
   }}
+
+  
   style={{
     width: "100%",
     height: 56,
@@ -1948,22 +2064,60 @@ handleBuyNow({
   </div>
 )}
         {/* FOOTER STRIP */}
-          <div style={{ background: NAVY, padding: "28px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: "0.3em", color: "#fff" }}>PRAKUMBH</div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>
-              © 2025 Prakumbh. India&apos;s Premium Streetwear.
+{/* FOOTER STRIP */}
+<div
+  style={{
+    background: NAVY,
+    padding: "28px 40px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 16,
+  }}
+>
+  <div
+    style={{
+      fontFamily: "'Oswald', sans-serif",
+      fontSize: 22,
+      letterSpacing: "0.3em",
+      color: "#fff",
+    }}
+  >
+    PRAKUMBH
+  </div>
 
-            </div>
-            <div style={{ display: "flex", gap: 24 }}>
-              {["Instagram","Twitter","YouTube"].map(s => (
-                <a key={s} href="#" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", textDecoration: "none" }}
-                  onMouseEnter={e => e.currentTarget.style.color = GOLD}
-                  onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.55)"}
-                >{s}</a>
-              ))}
-            </div>
-          </div>
+  <div
+    style={{
+      fontFamily: "'Barlow Condensed', sans-serif",
+      fontSize: 12,
+      letterSpacing: "0.15em",
+      color: "rgba(255,255,255,0.4)",
+      textTransform: "uppercase",
+    }}
+  >
+    © 2025 Prakumbh. India's Premium Streetwear.
+  </div>
 
+  <div style={{ display: "flex", gap: 24 }}>
+    {["Instagram", "Twitter", "YouTube"].map((s) => (
+      <a
+        key={s}
+        href="#"
+        style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 12,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.55)",
+          textDecoration: "none",
+        }}
+      >
+        {s}
+      </a>
+    ))}
+  </div>
+</div>
         
       </div>
     </>

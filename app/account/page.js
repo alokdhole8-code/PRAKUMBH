@@ -473,18 +473,25 @@ const {
 
 // ─── OVERVIEW TAB ─────────────────────────────────────────────────────────────
 function OverviewTab({ user, orders, totalSpent, lastOrder, setActiveTab, router }) {
-const stats = [
-  {
-    label: "Total Orders",
-    value: orders.length,
-    icon: "shopping_bag",
-  },
-  {
-    label: "Total Spent",
-    value: `₹${totalSpent.toLocaleString("en-IN")}`,
-    icon: "payments",
-  },
-];
+  const stats = [
+    { label: "Total Orders", value: orders.length, icon: "shopping_bag" },
+    {
+      label: "Total Spent",
+      value: `₹${totalSpent.toLocaleString("en-IN")}`,
+      icon: "payments",
+    },
+    {
+      label: "Last Order",
+      value: lastOrder
+        ? new Date(lastOrder.date).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+          })
+        : "—",
+      icon: "calendar_today",
+    },
+  ];
+
   return (
     <div>
       {/* STAT CARDS */}
@@ -570,6 +577,7 @@ const stats = [
             icon: "receipt_long",
             action: () => setActiveTab("Orders"),
           },
+           
           {
             label: "Edit Profile",
             icon: "person_edit",

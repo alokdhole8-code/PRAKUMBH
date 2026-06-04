@@ -1,8 +1,7 @@
     'use client';
  import { useCart } from "@/components/CartProvider";
 import { useState, useEffect, useRef, useMemo, memo } from "react";
-import Link from "next/link";
-    import { useRouter, useSearchParams } from "next/navigation";
+     import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
     import { products, GOLD, NAVY, LIGHT, BORDER } from "../data/products";
     import { motion, AnimatePresence } from "framer-motion";
@@ -14,70 +13,38 @@ import Navbar, { AnnouncementBar } from "@/components/Navbar";
     // ─── CONSTANTS ───────────────────────────────────────────────────────────────
     const EASE = [0.16, 1, 0.3, 1];
 const MILITARY_CATEGORIES = [
-    {
+      {
   id: "all",
   label: "All",
-  image: "/categories/shivaji.webp",
+    image: "/assets/all.jpeg",
 },
   {
     id: "shivaji",
-    label: "Shivaji Raje",
-    image: "/categories/shivaji.webp",
+    label: "MARATHA LEGENDS",
+    image: "/assets/fest.jpeg",
   },
-
   {
     id: "swarajya",
-    label: "Hindavi Swarajya",
-    image: "/categories/shivaji.webp",
+    label: "FESTIVALS",
+    image: "/assets/gadkot.jpeg",
   },
-
   {
     id: "sambhaji",
-    label: "Sambhaji Maharaj",
-    image: "/categories/shivaji.webp",
+    label: "FORTS & GADKOT",
+    image: "/assets/gadkot.jpeg",
   },
-
   {
     id: "maharashtra",
-    label: "Maharashtra",
-    image: "/categories/shivaji.webp",
+    label: "MAHARASHTRA PRIDE",
+    image:"/assets/maharastr.jpeg",
   },
-
   {
     id: "shivjayanti",
-    label: "Shivjayanti",
-    image: "/categories/shivaji.webp",
+    label: "HERITAGE",
+    image: "/assets/heritage.jpeg",
   },
 
-  {
-    id: "diwali",
-    label: "Diwali",
-    image: "/categories/shivaji.webp",
-  },
-
-  {
-    id: "dasara",
-    label: "Dasara",
-    image: "/categories/shivaji.webp",
-  },
-
-  {
-    id: "mavala",
-    label: "Mavala",
-    image: "/categories/shivaji.webp",
-  },
-
-  {
-    id: "forts",
-    label: "Maharashtra Forts",
-    image: "/categories/shivaji.webp",
-  },
-
-  {
-    id: "ganpati",
-    label: "Ganpati",
-    image: "/categories/shivaji.webp",
-  },
+ 
 ];
 
     const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -111,8 +78,7 @@ function CartDrawer({
   setAddressOpen,
   customer,
   setCustomer,
-  setBuyNowProduct,
-}) {
+ }) {
   const [isMobile, setIsMobile] = 
     useState(false);
 
@@ -488,13 +454,9 @@ ci.selectedSize === item.selectedSize
   </p>
 
 <button
-onClick={() =>
-  handleBuyNow({
-    setBuyNowProduct,
-    setAddressOpen,
-    cartItems,
-  })
-}
+  onClick={() => {
+    setAddressOpen(true);
+  }}
   style={{
     width: "100%",
     height: 58,
@@ -606,8 +568,18 @@ letterSpacing: "-0.02em",
       // ─── SHOP HERO ──────────────────────────────────────────   ──────────────────────
     function ShopHero({ activeCategory, setActiveCategory }) {
     return (
-        <section style={{ position: "relative", height: "220px", overflow: "hidden", background: "#060d18" }}>
-        {/* BG IMAGE */}
+<section
+  style={{
+    position: "relative",
+    height:
+      typeof window !== "undefined" &&
+      window.innerWidth < 768
+        ? "240px"
+        : "420px",
+    overflow: "hidden",
+    background: "#060d18",
+  }}
+>        {/* BG IMAGE */}
         <div style={{
             position: "absolute", inset: 0,
 backgroundImage:
@@ -628,8 +600,18 @@ backgroundImage:
         </div>
 
         {/* MAIN CONTENT */}
-        <div style={{ position: "relative", zIndex: 10, height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 clamp(20px,6vw,80px)" }}>
-            {/* EYEBROW */}
+<div
+  style={{
+    position: "relative",
+    zIndex: 10,
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    padding: "0 clamp(20px,6vw,80px)",
+    paddingTop: "40px", // content neeche aayega
+  }}
+>            {/* EYEBROW */}
             <div 
             style={{ display: "inline-flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
             <div style={{ width: 36, height: 1.5, background: GOLD }} />
@@ -1225,56 +1207,7 @@ fontWeight: 600, letterSpacing: "0.03em", color: "#111", marginBottom: 6, lineHe
     );
 }))
 );    // ─── SHOP BANNER (mid-page CTA) ──────────────────────────────────────────────
-    function ShopBanner() {
-    return (
-        <div
-         
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, ease: EASE }}
-        style={{
-            position: "relative", margin: "60px 0", overflow: "hidden",
-            background: NAVY, borderRadius: 4,
-            padding: "clamp(32px,5vw,60px) clamp(24px,5vw,64px)",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            gap: 24, flexWrap: "wrap",
-        }}
-        >
-        {/* DECORATIVE */}
-        <div style={{ position: "absolute", right: -40, top: -40, width: 280, height: 280, borderRadius: "50%", border: `1px solid rgba(212,175,55,0.12)` }} />
-        <div style={{ position: "absolute", right: 20, top: 20, width: 160, height: 160, borderRadius: "50%", border: `1px solid rgba(212,175,55,0.08)` }} />
-
-        <div style={{ position: "relative", zIndex: 2 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-            <div style={{ width: 28, height: 1.5, background: GOLD }} />
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: "0.3em", color: GOLD, textTransform: "uppercase", fontWeight: 700 }}>Limited Collection</span>
-            </div>
-            <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: "clamp(28px,6vw,56px)", color: "#fff", letterSpacing: "0.03em", lineHeight: 1, marginBottom: 10 }}>
-            FREE SHIPPING ON<br /><span style={{ color: GOLD }}>ORDERS ABOVE ₹999</span>
-            </h2>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: "rgba(255,255,255,0.55)", letterSpacing: "0.06em" }}>48-hour dispatch · Pan-India delivery · COD available</p>
-        </div>
-
-        <div style={{ position: "relative", zIndex: 2, display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <button
-            style={{ background: GOLD, color: "#fff", border: "none", padding: "14px 36px", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", cursor: "pointer", clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%)", transition: "filter 0.2s" }}
-            onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.1)"}
-            onMouseLeave={e => e.currentTarget.style.filter = "brightness(1)"}
-            >
-            Shop Now
-            </button>
-            <button
-            style={{ background: "transparent", color: "rgba(255,255,255,0.75)", border: "1px solid rgba(255,255,255,0.25)", padding: "13px 28px", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer", transition: "border-color 0.2s, color 0.2s" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.color = GOLD; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; e.currentTarget.style.color = "rgba(255,255,255,0.75)"; }}
-            >
-            View All
-            </button>
-        </div>
-        </div>
-    );
-    }
-
+  
     // ─── ROOT PAGE ────────────────────────────────────────────────────────────────
 function ShopPageContent() {
 const [addressOpen, setAddressOpen] = useState(false);
@@ -1285,14 +1218,7 @@ const {
   cartItems,
   setCartItems,
 } = useCart();
-
-const [buyNowProduct, setBuyNowProduct] = useState({
-  name: "Cart Order",
-  color: "N/A",
-  size: "N/A",
-  quantity: 1,
-  price: 0,
-});
+ 
  
 const [barHidden, setBarHidden] = useState(false);
  
@@ -1367,12 +1293,21 @@ useEffect(() => {
         let list = [...products];
 
         // Category filter — maps by product.category or product.tag fallback
-        if (activeCategory !== "all") {
-        list = list.filter(p =>
-            (p.category || "").toLowerCase().includes(activeCategory) ||
-            (p.tag || "").toLowerCase().includes(activeCategory)
-        );
-        }
+// Category filter
+if (
+  activeCategory !== "all" &&
+  activeCategory !== "shivaji"
+) {
+  list = list.filter(
+    (p) =>
+      (p.category || "")
+        .toLowerCase()
+        .includes(activeCategory) ||
+      (p.tag || "")
+        .toLowerCase()
+        .includes(activeCategory)
+  );
+}
 
         // Price range filter
         if (filters.priceRange) {
@@ -1454,8 +1389,7 @@ useEffect(() => {
   setAddressOpen={setAddressOpen}
   customer={customer}
   setCustomer={setCustomer}
-  setBuyNowProduct={setBuyNowProduct}
-/>
+ />
         {/* PAGE BODY */}
 <div
   style={{
@@ -1664,13 +1598,17 @@ useEffect(() => {
 />
 
       {/* CITY + PINCODE */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 12,
-        }}
-      >
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      window.innerWidth < 480
+        ? "1fr"
+        : "1fr 1fr",
+    gap: 12,
+    width: "100%",
+  }}
+>
 <input
   placeholder="City"
   value={city}
@@ -1747,9 +1685,127 @@ useEffect(() => {
 
     const message = "Product Selected You’re just one step away from placing your order.  Follow the next steps here on WhatsApp to complete your order.  - PRAKUMBH Clothing";
 
+
+    const currentUser = JSON.parse(
+  localStorage.getItem("prakumbh_current")
+);
+
+if (currentUser) {
+  const users =
+    JSON.parse(
+      localStorage.getItem("prakumbh_users")
+    ) || [];
+
+  const userIndex = users.findIndex(
+    (u) => u.id === currentUser.id
+  );
+
+  if (userIndex !== -1) {
+    const orderData = {
+      id: "ORD" + Date.now(),
+      date: new Date().toISOString(),
+      status: "Processing",
+
+items: cartItems.map(item => ({
+  ...item,
+  image:
+    item.images?.[
+      item.selectedColor ||
+      item.defaultColor ||
+      "black"
+    ]?.back || "",
+})),
+      total: cartItems.reduce(
+        (total, item) =>
+          total +
+          Number(
+            item.price
+              .replace("₹", "")
+              .replace(".00", "")
+          ) *
+            (item.quantity || 1),
+        0
+      ),
+
+      shippingAddress: {
+        name: fullName,
+        phone,
+        address,
+        landmark,
+        city,
+        pincode,
+      },
+    };
+
+    if (!users[userIndex].orders) {
+      users[userIndex].orders = [];
+    }
+
+    users[userIndex].orders.unshift(orderData);
+
+    localStorage.setItem(
+      "prakumbh_users",
+      JSON.stringify(users)
+    );
+  }
+}
+const orderPayload = {
+  orderId: "PK" + Date.now(),
+  date: new Date().toLocaleString(),
+
+  name: fullName,
+  phone,
+  address,
+  city,
+  state: "Maharashtra",
+  pincode,
+
+  product: cartItems
+    .map(
+      (item) =>
+        `${item.name} | Color: ${item.selectedColor} | Size: ${item.selectedSize}`
+    )
+    .join(" || "),
+
+  quantity: cartItems.reduce(
+    (t, i) => t + (i.quantity || 1),
+    0
+  ),
+
+  amount: cartItems.reduce(
+    (t, i) =>
+      t +
+Number(
+  i.price
+    .replace("₹", "")
+    .replace(".00", "")
+) *
+        (i.quantity || 1),
+    0
+  ),
+};
+
     const whatsappUrl =
       `https://wa.me/918766599895?text=${encodeURIComponent(message)}`;
 
+fetch(
+  "https://script.google.com/macros/s/AKfycbxYG8KeTKrt2sLhhrCyJ52m0E5XWUTzZYsYcmObNoDJm5q_ol_jXv_1XIM-lnTo-YsrLg/exec",
+  {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(orderPayload),
+  }
+)
+.then(() => {
+  console.log("Order Sent");
+})
+.catch((err) => {
+  console.error("Sheet Error:", err);
+}).catch(console.error);
+      
     setAddressOpen(false);
     setCartOpen(false);
     setCartItems([]);
