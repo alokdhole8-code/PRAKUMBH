@@ -22,7 +22,7 @@ const MILITARY_CATEGORIES = [
 {
   id: "unfiltered",
   label: "UNFILTERED",
-  image: "/assets/unfiltered.WEBP",
+  image: "/assets/unfilteredd.jpeg",
 },
   {
     id: "shivaji",
