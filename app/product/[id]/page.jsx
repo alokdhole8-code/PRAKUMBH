@@ -5,7 +5,7 @@ import { products, GOLD, NAVY, LIGHT, BORDER } from "../../data/products";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar, { AnnouncementBar } from "@/components/Navbar";
 import { useCart } from "@/components/CartProvider";
-
+import Image from "next/image";
 import { handleBuyNow } from "@/lib/buyNow";
 
 
@@ -195,9 +195,18 @@ function CartDrawer({
                         borderBottom: "1px solid #ececec",
                       }}
                     >
-<img
-  src={item.images?.[item.selectedColor || item.defaultColor || "black"]?.back}
+<Image
+  src={
+    item.images?.[
+      item.selectedColor ||
+      item.defaultColor ||
+      "black"
+    ]?.back
+  }
   alt={item.name}
+  width={110}
+  height={140}
+  loading="lazy"
   style={{
     width: 110,
     height: 140,
@@ -612,11 +621,35 @@ const isFormValid =
 
 
   // ── SCROLL LISTENER (announcement bar hide) ───────────────────────────────
-  useEffect(() => {
-    const handle = () => setBarHidden(window.scrollY > 40);
-    window.addEventListener("scroll", handle, { passive: true });
-    return () => window.removeEventListener("scroll", handle);
-  }, []);
+const lastHidden = useRef(false);
+
+useEffect(() => {
+  let ticking = false;
+
+  const handle = () => {
+    if (ticking) return;
+
+    ticking = true;
+
+    requestAnimationFrame(() => {
+      const hidden = window.scrollY > 40;
+
+      if (hidden !== lastHidden.current) {
+        lastHidden.current = hidden;
+        setBarHidden(hidden);
+      }
+
+      ticking = false;
+    });
+  };
+
+  window.addEventListener("scroll", handle, {
+    passive: true,
+  });
+
+  return () =>
+    window.removeEventListener("scroll", handle);
+}, []);
 
   // ── HELPERS ───────────────────────────────────────────────────────────────
   const parsePrice = (str) =>
@@ -1063,11 +1096,13 @@ setTimeout(() => {
   loading="eager"
   decoding="async"
   draggable="false"
-  style={{
-    width: "100%",
-    objectFit: "contain",
-    display: "block",
-  }}
+style={{
+  width: "100%",
+  objectFit: "contain",
+  display: "block",
+  transform: "translateZ(0)",
+  willChange: "transform",
+}}
 />
 
               {/* THUMBNAIL DOTS (mobile) */}
@@ -1974,10 +2009,8 @@ background:
 <div
   style={{
     display: "grid",
-    gridTemplateColumns:
-      window.innerWidth < 480
-        ? "1fr"
-        : "1fr 1fr",
+gridTemplateColumns:
+  "repeat(auto-fit,minmax(140px,1fr))",
     gap: 12,
     width: "100%",
   }}

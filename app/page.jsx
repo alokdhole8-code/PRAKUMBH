@@ -11,6 +11,11 @@ import { handleBuyNow } from "@/lib/buyNow";
 // ─── DATA ────────────────────────────────────────────────────────────────────
  
 const SHOP_CATEGORIES = [
+    {
+  id: "unfiltered",
+  label: "UNFILTERED",
+  image: "/assets/unfilteredd.jpeg",
+},
   {
     id: "shivaji",
     label: "MARATHA LEGENDS",
@@ -36,6 +41,7 @@ const SHOP_CATEGORIES = [
     label: "HERITAGE",
     image: "/assets/heritage.jpeg",
   },
+
 ];
 const categories = [
   "T-Shirt","Polo T-Shirts","Oversized T-Shirt","Prime Polo",
@@ -64,8 +70,7 @@ function useIsMobile() {
 
 // ─── HERO ────────────────────────────────────────────────────────────────────
 function Hero() {
-  const isMobile = useIsMobile();
-
+ 
 const slides = useRef([
   "/assets/new01.jpeg",
   "/assets/new02.jpeg",
@@ -86,7 +91,7 @@ useEffect(() => {
       style={{
         position: "relative",
         width: "100%",
-        height: isMobile ? "260px" : "520px",
+        height: "clamp(260px,50vw,520px)",
         overflow: "hidden",
       }}
     >
@@ -176,9 +181,7 @@ const router = useRouter();
 
   return (
     <motion.div
-  onMouseEnter={() => {
-    router.prefetch(`/product/${product.id}`);
-  }}
+onClick={() => router.push(`/product/${product.id}`)}
   onClick={() => router.push(`/product/${product.id}`)}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
@@ -207,11 +210,13 @@ const router = useRouter();
   loading="lazy"
   sizes="(max-width:768px) 50vw, 25vw"
   quality={75}
-  style={{
-    width: "100%",
-    height: "auto",
-    display: "block",
-  }}
+style={{
+  width: "100%",
+  height: "auto",
+  display: "block",
+  transform: "translateZ(0)",
+  willChange: "transform",
+}}
 />
         {/* ADD TO CART */}
         <motion.button
@@ -608,16 +613,17 @@ gridTemplateColumns: isMobile
               cursor: "pointer",
             }}
           >
-            <img
-              src={cat.image}
-              alt={cat.label}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                transition: "transform .4s ease",
-              }}
-            />
+<Image
+  src={cat.image}
+  alt={cat.label}
+  fill
+  sizes="(max-width:768px) 50vw, 33vw"
+  loading="lazy"
+  style={{
+    objectFit: "cover",
+    transition: "transform .4s ease",
+  }}
+/>
 
             <div
               style={{
@@ -991,20 +997,21 @@ textAlign: isMobile ? "center" : "left",
     background: "#F7F3EB",
     padding: isMobile ? "12px" : "12px",
     boxShadow: "0 25px 60px rgba(0,0,0,0.12)",
+    position: "relative",
+height: isMobile ? "320px" : "520px",
   }}
 >
-  <img
-    src="/assets/our-story.jpeg"
-    alt="Our Story"
-    style={{
-      width: "100%",
-      height: isMobile ? "320px" : "520px",
-      objectFit: "cover",
-      display: "block",
-      borderRadius: 18,
-    }}
-  />
-
+<Image
+  src="/assets/our-story.jpeg"
+  alt="Our Story"
+  fill
+  loading="lazy"
+  sizes="(max-width:768px) 100vw, 50vw"
+  style={{
+    objectFit: "cover",
+    borderRadius: 18,
+  }}
+/>
   {/* Golden Glow */}
   <div
     style={{
@@ -1832,10 +1839,8 @@ handleBuyNow({
 <div
   style={{
     display: "grid",
-    gridTemplateColumns:
-      window.innerWidth < 480
-        ? "1fr"
-        : "1fr 1fr",
+gridTemplateColumns:
+  isMobile ? "1fr" : "1fr 1fr",
     gap: 12,
     width: "100%",
   }}

@@ -202,10 +202,16 @@ export default function Navbar({
   </div>
         ) : (
           /* DESKTOP — left navigation links */
-          <div
-            className="hidden lg:flex items-center flex-1"
-            style={{ justifyContent: "flex-start", gap: 40, paddingLeft: 40 }}
-          >
+<div
+  style={{
+    display: isMobile ? "none" : "flex",
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "flex-start",
+    gap: 40,
+    paddingLeft: 40,
+  }}
+>
             {desktopLeftLinks.map(l => (
               <button
                 key={l}
@@ -250,7 +256,7 @@ export default function Navbar({
             left: "50%",
             transform: "translateX(-50%)",
             fontFamily: "'Oswald', sans-serif",
-            fontSize: isMobile ? 18 : 26,
+            fontSize: "clamp(18px,2.2vw,26px)",
             fontWeight: 600,
             letterSpacing: "0.22em",
             color: "#111",

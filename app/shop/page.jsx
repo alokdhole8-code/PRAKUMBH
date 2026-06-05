@@ -193,7 +193,7 @@ function CartDrawer({
                             "1px solid #ececec",
                         }}
                       >
-                      <img
+<Image
   src={
     item.image ||
     item.images?.[
@@ -203,14 +203,16 @@ function CartDrawer({
     ]?.back
   }
   alt={item.name}
+  width={110}
+  height={140}
+  loading="lazy"
   style={{
     width: 110,
-height: 140,
-objectFit: "contain",
-background: "transparent",
+    height: 140,
+    objectFit: "contain",
+    background: "transparent",
   }}
 />
-
                         <div
                           style={{
                             flex: 1,
@@ -577,11 +579,7 @@ letterSpacing: "-0.02em",
 <section
   style={{
     position: "relative",
-    height:
-      typeof window !== "undefined" &&
-      window.innerWidth < 768
-        ? "240px"
-        : "420px",
+height: "clamp(240px,40vw,420px)",
     overflow: "hidden",
     background: "#060d18",
   }}
@@ -689,20 +687,26 @@ flexShrink: 0,
                 onMouseEnter={e => { if (activeCategory !== cat.id) { e.currentTarget.style.background = "#ebebeb"; e.currentTarget.style.transform = "scale(1.06)"; }}}
                 onMouseLeave={e => { if (activeCategory !== cat.id) { e.currentTarget.style.background = "#f4f3f0"; e.currentTarget.style.transform = "scale(1)"; }}}
                 >
-<img
-  src={cat.image}
-  alt={cat.label}
-  loading="lazy"
-  decoding="async"
-  fetchPriority="low"
-  draggable={false}
+<div
   style={{
+    position: "relative",
     width: "100%",
     height: "100%",
-    objectFit: "cover",
     borderRadius: "50%",
+    overflow: "hidden",
   }}
-/>                </div>
+>
+  <Image
+    src={cat.image}
+    alt={cat.label}
+    fill
+    sizes="68px"
+    loading="lazy"
+    style={{
+      objectFit: "cover",
+    }}
+  />
+</div>            </div>
                 <span style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: 10,
@@ -1110,18 +1114,14 @@ const imageSrc =
         : 0;
 
     return (
-        <div
-         
-        onMouseEnter={() => {
-  router.prefetch(`/product/${product.id}`);
-}}
-onClick={() => router.push(`/product/${product.id}`)}
-        style={{ cursor: "pointer" }}
-        >
+<div
+  onClick={() => router.push(`/product/${product.id}`)}
+  style={{ cursor: "pointer" }}
+>
         {/* IMAGE WRAP */}
         <div style={{ position: "relative", overflow: "hidden", background: "#fff",
 borderRadius: 12,
-boxShadow: "0 2px 12px rgba(0,0,0,0.08)", marginBottom: 14 }}>
+boxShadow: "0 1px 4px rgba(0,0,0,0.05)", marginBottom: 14 }}>
              
 
             {/* IMAGE */}
@@ -1130,15 +1130,20 @@ boxShadow: "0 2px 12px rgba(0,0,0,0.08)", marginBottom: 14 }}>
   alt={product.name}
   width={600}
   height={700}
-  loading={index < 8 ? "eager" : "lazy"}
+  priority={index < 4}
+loading={index < 4 ? "eager" : "lazy"}
   quality={75}
-  sizes="(max-width:768px) 50vw, 20vw"
-  style={{
-    width: "100%",
-    height: "auto",
-    objectFit: "cover",
-    display: "block",
-  }}
+  sizes="(max-width:640px) 50vw,
+(max-width:1200px) 25vw,
+20vw"
+style={{
+  width: "100%",
+  height: "auto",
+  objectFit: "cover",
+  display: "block",
+  transform: "translateZ(0)",
+  willChange: "transform",
+}}
 />
 
              
@@ -1312,27 +1317,40 @@ useEffect(() => {
     const [filters, setFilters] = useState({ sizes: [], priceRange: null, inStock: false });
 const lastHidden = useRef(false);
     // SCROLL LISTENER
+const rafRef = useRef(null);
+
 useEffect(() => {
   const handleScroll = () => {
-    const hidden = window.scrollY > 40;
+    if (rafRef.current) return;
 
-    if (hidden !== lastHidden.current) {
-      lastHidden.current = hidden;
-      setBarHidden(hidden);
-    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+
+      const hidden = window.scrollY > 40;
+
+      if (hidden !== lastHidden.current) {
+        lastHidden.current = hidden;
+        setBarHidden(hidden);
+      }
+    });
   };
 
-  window.addEventListener(
-    "scroll",
-    handleScroll,
-    { passive: true }
-  );
+  window.addEventListener("scroll", handleScroll, {
+    passive: true,
+  });
 
-  return () =>
+  return () => {
     window.removeEventListener(
       "scroll",
       handleScroll
     );
+
+    if (rafRef.current) {
+      cancelAnimationFrame(
+        rafRef.current
+      );
+    }
+  };
 }, []);
 
     // FILTERED + SORTED PRODUCTS
@@ -1421,7 +1439,10 @@ else if (activeCategory !== "all") {
             * { -webkit-tap-highlight-color: transparent; }
 
             /* RESPONSIVE PRODUCT GRID */
-            .shop-product-grid { grid-template-columns: repeat(5, 1fr); }
+            .shop-product-grid {
+  grid-template-columns: repeat(5, 1fr);
+  contain: layout style paint;
+}
             @media (max-width: 1200px) { .shop-product-grid { grid-template-columns: repeat(4, 1fr); } }
             @media (max-width: 900px)  { .shop-product-grid { grid-template-columns: repeat(3, 1fr); } }
             @media (max-width: 640px)  {
