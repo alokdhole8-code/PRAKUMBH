@@ -13,7 +13,7 @@ import { handleBuyNow } from "@/lib/buyNow";
 const SHOP_CATEGORIES = [
     {
   id: "unfiltered",
-  label: "UNFILTERED",
+  label: "UNTITLED",
   image: "/assets/unfilteredd.jpeg",
 },
   {

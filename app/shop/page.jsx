@@ -21,7 +21,7 @@ const MILITARY_CATEGORIES = [
 
 {
   id: "unfiltered",
-  label: "UNFILTERED",
+  label: "UNTITLED",
   image: "/assets/unfilteredd.jpeg",
 },
   {
