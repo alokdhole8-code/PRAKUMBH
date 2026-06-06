@@ -23,9 +23,9 @@ export const metadata: Metadata = {
   title: "Prakumbh",
   description: "Prakumbh Store",
   icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
-    apple: "/icon.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/web-app-manifest-192x192.png",
   },
 };
 
