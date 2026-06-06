@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 
 import { CartProvider } from "@/components/CartProvider";
@@ -14,9 +15,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const barlow = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 export const metadata: Metadata = {
   title: "Prakumbh",
   description: "Prakumbh Store",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -37,10 +47,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-import { Barlow_Condensed } from "next/font/google";
-
-const barlow = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["400","500","600","700"],
-});
