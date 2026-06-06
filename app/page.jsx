@@ -1,5 +1,5 @@
 'use client';
- 
+ import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import { products, GOLD, NAVY, LIGHT, BORDER } from "./data/products";
@@ -18,7 +18,7 @@ const SHOP_CATEGORIES = [
 },
   {
     id: "shivaji",
-    label: "MARATHA LEGENDS",
+    label: "CREATIVE GRAPHICS",
     image: "/assets/shivaji.jpeg",
   },
   {
@@ -26,22 +26,7 @@ const SHOP_CATEGORIES = [
     label: "FESTIVALS",
     image: "/assets/fest.jpeg",
   },
-  {
-    id: "sambhaji",
-    label: "FORTS & GADKOT",
-    image: "/assets/gadkot.jpeg",
-  },
-  {
-    id: "maharashtra",
-    label: "MAHARASHTRA PRIDE",
-    image:"/assets/maharastr.jpeg",
-  },
-  {
-    id: "shivjayanti",
-    label: "HERITAGE",
-    image: "/assets/heritage.jpeg",
-  },
-
+ 
 ];
 const categories = [
   "T-Shirt","Polo T-Shirts","Oversized T-Shirt","Prime Polo",
@@ -168,10 +153,11 @@ useEffect(() => {
  
 
 // ─── PRODUCT CARD ─────────────────────────────────────────────────────────────
- const ProductCard = memo(function ProductCard({
+const ProductCard = memo(function ProductCard({
   product,
   setCartOpen,
   setCartItems,
+  setPageLoading,
 }) {
 const router = useRouter();
  
@@ -181,8 +167,10 @@ const router = useRouter();
 
   return (
     <motion.div
-onClick={() => router.push(`/product/${product.id}`)}
-  onClick={() => router.push(`/product/${product.id}`)}
+onClick={() => {
+  setPageLoading(true);
+  router.push(`/product/${product.id}`);
+}}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       style={{
@@ -383,6 +371,7 @@ item.selectedSize === "M"
 function FeaturedProducts({
   setCartOpen,
   setCartItems,
+  setPageLoading,
 }) {
   const isMobile = useIsMobile();
 
@@ -548,11 +537,12 @@ maxWidth:
                 }}
               >
 <div>
-  <ProductCard
-    product={p}
-    setCartOpen={setCartOpen}
-    setCartItems={setCartItems}
-  />
+<ProductCard
+  product={p}
+  setCartOpen={setCartOpen}
+  setCartItems={setCartItems}
+  setPageLoading={setPageLoading}
+/>
 </div>
               </div>
             ))}
@@ -564,7 +554,7 @@ maxWidth:
 }
 
 
-function ShopByCategory() {
+function ShopByCategory({ setPageLoading }) {
   const isMobile = useIsMobile();
   const router = useRouter();
 
@@ -602,9 +592,10 @@ gridTemplateColumns: isMobile
         {SHOP_CATEGORIES.map((cat) => (
           <div
             key={cat.id}
-            onClick={() =>
-              router.push(`/shop?category=${cat.id}`)
-            }
+onClick={() => {
+  setPageLoading(true);
+  router.push(`/shop?category=${cat.id}`);
+}}
             style={{
               position: "relative",
               aspectRatio: "0.75",
@@ -657,10 +648,10 @@ gridTemplateColumns: isMobile
   );
 }
 
-
 function NewArrivals({
   setCartOpen,
   setCartItems,
+  setPageLoading,
 }) {
   const isMobile = useIsMobile();
 
@@ -845,11 +836,12 @@ maxWidth:
                 }}
               >
 <div>
-  <ProductCard
-    product={p}
-    setCartOpen={setCartOpen}
-    setCartItems={setCartItems}
-  />
+<ProductCard
+  product={p}
+  setCartOpen={setCartOpen}
+  setCartItems={setCartItems}
+  setPageLoading={setPageLoading}
+/>
 </div>
               </div>
             ))}
@@ -897,7 +889,14 @@ maxWidth:
           animation: warriorMarquee 20s linear infinite;
 
         }
-
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
       `}</style>
 
 
@@ -1118,6 +1117,10 @@ export default function WarriorWorldHomepage() {
 
  
   const [barHidden, setBarHidden] = useState(false);
+
+  const pathname = usePathname();
+const [pageLoading, setPageLoading] = useState(false);
+
  const [addressOpen, setAddressOpen] = useState(false);
 const [buyNowProduct, setBuyNowProduct] = useState(null);
 
@@ -1236,19 +1239,22 @@ useEffect(() => {
 >
 <Hero />
 
-<ShopByCategory />
+<ShopByCategory
+  setPageLoading={setPageLoading}
+/>
 
  
 <FeaturedProducts
   setCartOpen={setCartOpen}
   setCartItems={setCartItems}
+  setPageLoading={setPageLoading}
 />
 
 <WarriorStrip />
-
 <NewArrivals
   setCartOpen={setCartOpen}
   setCartItems={setCartItems}
+  setPageLoading={setPageLoading}
 />
 
 <OurStory />
@@ -2080,8 +2086,7 @@ setTimeout(() => {
     </div>
   </div>
 )}
-        {/* FOOTER STRIP */}
-{/* FOOTER STRIP */}
+ {/* FOOTER STRIP */}
 <div
   style={{
     background: NAVY,
@@ -2135,7 +2140,30 @@ setTimeout(() => {
     ))}
   </div>
 </div>
-        
+        {pageLoading && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(255,255,255,0.85)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 99999999,
+    }}
+  >
+    <div
+      style={{
+        width: 60,
+        height: 60,
+        border: "4px solid #ddd",
+        borderTop: "4px solid #0D1B2A",
+        borderRadius: "50%",
+        animation: "spin 0.8s linear infinite",
+      }}
+    />
+  </div>
+)}
       </div>
     </>
   );

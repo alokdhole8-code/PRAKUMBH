@@ -26,7 +26,7 @@ const MILITARY_CATEGORIES = [
 },
   {
     id: "shivaji",
-    label: "MARATHA LEGENDS",
+    label: "CREATIVE GRAPHICS",
     image: "/assets/fest.jpeg",
   },
   {
@@ -34,22 +34,6 @@ const MILITARY_CATEGORIES = [
     label: "FESTIVALS",
     image: "/assets/gadkot.jpeg",
   },
-  {
-    id: "sambhaji",
-    label: "FORTS & GADKOT",
-    image: "/assets/gadkot.jpeg",
-  },
-  {
-    id: "maharashtra",
-    label: "MAHARASHTRA PRIDE",
-    image:"/assets/maharastr.jpeg",
-  },
-  {
-    id: "shivjayanti",
-    label: "HERITAGE",
-    image: "/assets/heritage.jpeg",
-  },
-
  
 ];
 
@@ -1074,6 +1058,7 @@ useEffect(() => {
   setCartOpen,
   setCartItems,
   index,
+  setPageLoading,
 }) {
 
     const router = useRouter();
@@ -1115,7 +1100,10 @@ const imageSrc =
 
     return (
 <div
-  onClick={() => router.push(`/product/${product.id}`)}
+  onClick={() => {
+  setPageLoading(true);
+  router.push(`/product/${product.id}`);
+}}
   style={{ cursor: "pointer" }}
 >
         {/* IMAGE WRAP */}
@@ -1221,6 +1209,7 @@ background:
   products: list,
   setCartOpen,
   setCartItems,
+  setPageLoading,
 }) {
     if (list.length === 0) {
         return (
@@ -1241,8 +1230,14 @@ background:
         className="shop-product-grid"
         >
         {list.map((p, i) => (
-            <ShopProductCard key={p.id} product={p} index={i} setCartOpen={setCartOpen} setCartItems={setCartItems} />
-        ))}
+<ShopProductCard
+  key={p.id}
+  product={p}
+  index={i}
+  setCartOpen={setCartOpen}
+  setCartItems={setCartItems}
+  setPageLoading={setPageLoading}
+/>        ))}
         </div>
     );
 }))
@@ -1271,8 +1266,8 @@ const {
   setCartItems,
 } = useCart();
  
- 
-const [barHidden, setBarHidden] = useState(false);
+ const [barHidden, setBarHidden] = useState(false);
+const [pageLoading, setPageLoading] = useState(false);
  
 const [fullName, setFullName] = useState("");
 const [phone, setPhone] = useState("");
@@ -1451,6 +1446,14 @@ else if (activeCategory !== "all") {
     gap: 18px !important;
   }
 }
+  @keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
         `}</style>
 
         <AnnouncementBar hidden={barHidden} />
@@ -1503,8 +1506,12 @@ else if (activeCategory !== "all") {
             </div>
 
             {/* GRID */}
-            <ProductGrid products={displayProducts} setCartOpen={setCartOpen} setCartItems={setCartItems} />
-
+<ProductGrid
+  products={displayProducts}
+  setCartOpen={setCartOpen}
+  setCartItems={setCartItems}
+  setPageLoading={setPageLoading}
+/>
             {/* MID-PAGE BANNER */}
  
 
@@ -1526,10 +1533,34 @@ else if (activeCategory !== "all") {
                 ))}
             </div>
             </div>
+</div>
 
-        </div>
+{pageLoading && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(255,255,255,0.85)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 99999999,
+    }}
+  >
+    <div
+      style={{
+        width: 60,
+        height: 60,
+        border: "4px solid #ddd",
+        borderTop: "4px solid #0D1B2A",
+        borderRadius: "50%",
+        animation: "spin 0.8s linear infinite",
+      }}
+    />
+  </div>
+)}
 
- {addressOpen && (
+{addressOpen && (
   <div
     style={{
       position: "fixed",
