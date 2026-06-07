@@ -163,7 +163,8 @@ password: form.password,
 
       setSuccess(true);
       await new Promise((r) => setTimeout(r, 900));
-      router.push("/account");
+      setPageLoading?.(true);
+router.push("/account");
     } catch {
       setGlobalError("Something went wrong. Please try again.");
       setLoading(false);

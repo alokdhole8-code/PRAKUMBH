@@ -74,7 +74,8 @@ export function AnnouncementBar({ hidden }) {
               to   { transform: translateX(-50%); }
             }
             .marquee-track {
-              animation: marquee 28s linear infinite;
+              animation: marquee 18s linear infinite;
+will-change: transform;
               white-space: nowrap;
               display: flex;
             }
@@ -125,7 +126,9 @@ export default function Navbar({
   barHidden,
   setCartOpen,
   cartItems,
-}) {
+  setPageLoading,
+})
+ {
   const router      = useRouter();
   
   const isMobile    = useIsMobile();
@@ -154,7 +157,8 @@ export default function Navbar({
           background: "#fff",
           position: "fixed",
           top: barHidden ? 0 : 36,
-          transition: "top 0.35s cubic-bezier(0.16,1,0.3,1)",
+          transition: "top 0.22s ease-out",
+willChange: "top",
           left: 0,
           width: "100%",
           zIndex: 99999,
@@ -250,7 +254,10 @@ export default function Navbar({
 
         {/* ── CENTER LOGO — always perfectly centred via absolute positioning ── */}
         <div
-          onClick={() => router.push("/")}
+          onClick={() => {
+  setPageLoading?.(true);
+  router.push("/");
+}}
           style={{
             position: "absolute",
             left: "50%",
@@ -286,7 +293,8 @@ export default function Navbar({
   id={icon === "shopping_bag" ? "prakumbh-cart-btn" : undefined}
               onClick={() => {
   if (icon === "person") {
-    router.push("/account");
+    setPageLoading?.(true);
+router.push("/account");
   }
 
   if (icon === "shopping_bag") {
@@ -377,7 +385,7 @@ export default function Navbar({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.28, ease: "easeOut" }}
+              transition={{ duration: 0.15 }}
               onClick={() => setDrawerOpen(false)}
               style={{
                 position: "fixed",
@@ -394,7 +402,7 @@ export default function Navbar({
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ duration: 0.38, ease: EASE }}
+              transition={{ duration: 0.25, ease: EASE }}
               style={{
                 position: "fixed",
                 top: 0,
@@ -483,7 +491,11 @@ marginTop: -8,
                     initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.06 + i * 0.045, duration: 0.35, ease: EASE }}
-                    onClick={() => { router.push(link.href); setDrawerOpen(false); }}
+onClick={() => {
+  setPageLoading(true);
+  setDrawerOpen(false);
+  router.push(link.href);
+}}
                     style={{
   display: "flex",
   alignItems: "center",

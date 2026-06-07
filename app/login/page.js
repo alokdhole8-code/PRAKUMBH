@@ -43,7 +43,8 @@ export default function LoginPage() {
     login(email.trim(), password);
     // Dispatch storage event so Navbar updates
     window.dispatchEvent(new Event("storage"));
-    router.push("/account");
+    setPageLoading?.(true);
+router.push("/account");
   };
 
   return (

@@ -631,8 +631,12 @@ backgroundImage:
     }
 
     // ─── CATEGORY CIRCLES ────────────────────────────────────────────────────────
-    function CategorySection({ activeCategory, setActiveCategory }) {
-    return (
+function CategorySection({
+  activeCategory,
+  setActiveCategory,
+  setPageLoading,
+}) {
+      return (
         <section style={{ background: "#fff", padding: "18px clamp(16px,4vw,48px) 2px", overflowX: "auto" }}>
         <div
   className="category-scroll"
@@ -650,7 +654,9 @@ backgroundImage:
             <button
                 key={cat.id}
                  
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => {
+  setActiveCategory(cat.id);
+}}
                 style={{
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
                 background: "none", border: "none", cursor: "pointer",
@@ -1100,7 +1106,7 @@ const imageSrc =
 
     return (
 <div
-  onClick={() => {
+onClick={() => {
   setPageLoading(true);
   router.push(`/product/${product.id}`);
 }}
@@ -1118,9 +1124,9 @@ boxShadow: "0 1px 4px rgba(0,0,0,0.05)", marginBottom: 14 }}>
   alt={product.name}
   width={600}
   height={700}
-  priority={index < 4}
-loading={index < 4 ? "eager" : "lazy"}
-  quality={75}
+  priority={index < 2}
+loading={index < 2 ? "eager" : "lazy"}
+  quality={50}
   sizes="(max-width:640px) 50vw,
 (max-width:1200px) 25vw,
 20vw"
@@ -1129,8 +1135,6 @@ style={{
   height: "auto",
   objectFit: "cover",
   display: "block",
-  transform: "translateZ(0)",
-  willChange: "transform",
 }}
 />
 
@@ -1245,6 +1249,8 @@ background:
   
     // ─── ROOT PAGE ────────────────────────────────────────────────────────────────
 function ShopPageContent() {
+
+  
 const [addressOpen, setAddressOpen] = useState(false);
 const [isMobile, setIsMobile] = useState(false);
 
@@ -1298,6 +1304,11 @@ const isFormValid =
     const [activeCategory, setActiveCategory] = useState("all");
 
     const searchParams = useSearchParams();
+
+    useEffect(() => {
+  setPageLoading(false);
+}, [searchParams]);
+
 
 useEffect(() => {
   const category = searchParams.get("category");
@@ -1480,8 +1491,11 @@ else if (activeCategory !== "all") {
             <ShopHero activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
 
             {/* 2. CATEGORY CIRCLES */}
-            <CategorySection activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-
+<CategorySection
+  activeCategory={activeCategory}
+  setActiveCategory={setActiveCategory}
+  setPageLoading={setPageLoading}
+/>
             {/* 3. FILTER BAR */}
             <FilterBar
             filters={filters} setFilters={setFilters}

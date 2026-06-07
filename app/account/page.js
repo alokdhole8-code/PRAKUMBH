@@ -237,7 +237,10 @@ const {
   }}
 >
   <button
-    onClick={() => router.push("/shop")}
+    onClick={() => {
+  setPageLoading?.(true);
+  router.push("/shop");
+}}
     style={{
       display: "flex",
       alignItems: "center",
@@ -694,7 +697,10 @@ function OrdersSection({ orders, router }) {
           Your order history will appear here once you make a purchase.
         </p>
         <button
-          onClick={() => router.push("/shop")}
+          onClick={() => {
+  setPageLoading?.(true);
+  router.push("/shop");
+}}
           style={{
             background: NAVY,
             color: "#fff",
@@ -1111,7 +1117,10 @@ function WishlistSection({ userId, router }) {
           Save items you love for later.
         </p>
         <button
-          onClick={() => router.push("/shop")}
+          onClick={() => {
+  setPageLoading?.(true);
+  router.push("/shop");
+}}
           style={{
             background: NAVY,
             color: "#fff",

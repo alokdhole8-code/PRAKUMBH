@@ -112,7 +112,10 @@ export default function OrdersPage() {
                 You haven't placed any orders yet. Start shopping and your orders will appear here.
               </p>
               <button
-                onClick={() => router.push("/shop")}
+                onClick={() => {
+  setPageLoading?.(true);
+  router.push("/shop");
+}}
                 style={{
                   background: NAVY,
                   color: "#fff",

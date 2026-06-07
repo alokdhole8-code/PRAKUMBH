@@ -57,9 +57,9 @@ function useIsMobile() {
 function Hero() {
  
 const slides = useRef([
-  "/assets/new01.jpeg",
-  "/assets/new02.jpeg",
-  "/assets/new03.jpeg",
+  "/assets/new01.webp",
+  "/assets/new02.webp",
+  "/assets/new03.webp",
 ]).current;
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -81,30 +81,24 @@ useEffect(() => {
       }}
     >
       {/* IMAGE */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeSlide}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
-          style={{
-            position: "absolute",
-            inset: 0,
-          }}
-        >
-          <Image
-            src={slides[activeSlide]}
-            alt={`Hero ${activeSlide + 1}`}
-            fill
-            priority
-            style={{
-              objectFit: "cover",
-              objectPosition: "center center",
-            }}
-          />
-        </motion.div>
-      </AnimatePresence>
+{slides.map((slide, index) => (
+  <Image
+    key={slide}
+    src={slide}
+    alt={`Hero ${index + 1}`}
+    fill
+    priority
+    quality={60}
+    sizes="100vw"
+    style={{
+      objectFit: "cover",
+      objectPosition: "center",
+      opacity: activeSlide === index ? 1 : 0,
+      transition: "opacity 1s ease-in-out",
+      position: "absolute",
+    }}
+  />
+))}
 
       {/* DOTS */}
       <div
@@ -160,7 +154,7 @@ const ProductCard = memo(function ProductCard({
   setPageLoading,
 }) {
 const router = useRouter();
- 
+ const isMobile = useIsMobile();
   const [hovered, setHovered] = useState(false);
   const [selectedColor, setSelectedColor] =
   useState(product.defaultColor || "black");
@@ -197,7 +191,7 @@ onClick={() => {
   height={700}
   loading="lazy"
   sizes="(max-width:768px) 50vw, 25vw"
-  quality={75}
+  quality={60}
 style={{
   width: "100%",
   height: "auto",
@@ -207,71 +201,37 @@ style={{
 }}
 />
         {/* ADD TO CART */}
-        <motion.button
-          initial={{ y: 100 }}
-          animate={{
-            y: hovered ? 0 : 100,
-          }}
-          transition={{
-            duration: 0.35,
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-
-            setCartItems((prev) => {
-              const exists = prev.find(
-  (item) =>
-    item.id === product.id &&
-    item.selectedColor === selectedColor &&
-    item.selectedSize === "M"
-);
-
-              if (exists) {
-                return prev.map((item) =>
-                  item.id === product.id &&
-item.selectedColor === selectedColor &&
-item.selectedSize === "M"
-                    ? {
-                        ...item,
-                        quantity:
-                          (item.quantity || 1) + 1,
-                      }
-                    : item
-                );
-              }
-
-              return [
-                ...prev,
-                {
-  ...product,
-  quantity: 1,
-  selectedColor: selectedColor,
-  selectedSize: "M",
-},
-              ];
-            });
-
-            setCartOpen(true);
-          }}
-          style={{
-            position: "absolute",
-            left: 18,
-            right: 18,
-            bottom: 18,
-            height: 56,
-            border: "none",
-            background: "#0D1B2A",
-            color: "#fff",
-            fontSize: 15,
-            fontWeight: 700,
-            letterSpacing: "0.14em",
-            marginBottom: 0,
-            cursor: "pointer",
-          }}
-        >
-          
-          ADD TO CART
-        </motion.button>
+{!isMobile && (
+  <motion.button
+    initial={{ y: 100 }}
+    animate={{
+      y: hovered ? 0 : 100,
+    }}
+    transition={{
+      duration: 0.35,
+    }}
+    onClick={(e) => {
+      e.stopPropagation();
+      // existing code
+    }}
+    style={{
+      position: "absolute",
+      left: 18,
+      right: 18,
+      bottom: 18,
+      height: 56,
+      border: "none",
+      background: "#0D1B2A",
+      color: "#fff",
+      fontSize: 15,
+      fontWeight: 700,
+      letterSpacing: "0.14em",
+      cursor: "pointer",
+    }}
+  >
+    ADD TO CART
+  </motion.button>
+)}
       </div>
 
       {/* INFO */}
@@ -1117,9 +1077,13 @@ export default function WarriorWorldHomepage() {
 
  
   const [barHidden, setBarHidden] = useState(false);
+const pathname = usePathname();
 
-  const pathname = usePathname();
 const [pageLoading, setPageLoading] = useState(false);
+
+useEffect(() => {
+  setPageLoading(false);
+}, [pathname]);
 
  const [addressOpen, setAddressOpen] = useState(false);
 const [buyNowProduct, setBuyNowProduct] = useState(null);
@@ -1224,12 +1188,11 @@ useEffect(() => {
 
       <div>
         <AnnouncementBar hidden={barHidden} />
-        <Navbar
+<Navbar
   barHidden={barHidden}
-  setCartOpen={(value) => {
-     setCartOpen(value);
-  }}
+  setCartOpen={setCartOpen}
   cartItems={cartItems}
+  setPageLoading={setPageLoading}
 />
         <div
   style={{

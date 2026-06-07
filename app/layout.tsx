@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Barlow_Condensed } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 import { CartProvider } from "@/components/CartProvider";
@@ -43,6 +44,20 @@ export default function RootLayout({
         <CartProvider>
           {children}
         </CartProvider>
+
+        <Script
+  src="https://www.googletagmanager.com/gtag/js?id=G-Q9JE91S8YN"
+  strategy="afterInteractive"
+/>
+
+<Script id="google-analytics" strategy="afterInteractive">
+  {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Q9JE91S8YN');
+  `}
+</Script>
       </body>
     </html>
   );

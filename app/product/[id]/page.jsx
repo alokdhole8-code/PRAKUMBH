@@ -715,7 +715,7 @@ useEffect(() => {
     if (!validateSelection()) return;
 
     // Trigger flying bag animation
-    triggerFlyAnimation();
+    // triggerFlyAnimation();
 
     // Existing cart logic — unchanged
     setCartItems((prev) => {
@@ -753,7 +753,7 @@ setTimeout(() => {
 }, 50);  };
  
   // ── RELATED PRODUCTS ──────────────────────────────────────────────────────
-  const related = products.filter((p) => p.id !== product.id).slice(0, 4);
+  const related = products.filter((p) => p.id !== product.id).slice(0, 2);
 
   // ── STYLES ───────────────────────────────────────────────────────────────
   const S = {
@@ -875,8 +875,8 @@ setTimeout(() => {
     <>
       {/* FONTS + ICONS */}
       <style>{`
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap');
-         * { margin: 0; padding: 0; box-sizing: border-box; }
+      @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap');
+          * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Barlow Condensed', sans-serif; background: #fff; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
         button { outline: none; }
         .group:hover .group-hover\\:w-full { width: 100% !important; }
@@ -1042,10 +1042,9 @@ setTimeout(() => {
             {/* MAIN IMAGE COL */}
 <div
   className="product-image-wrapper"
-  style={{
-    position: "sticky",
-    top: 24,
-  }}
+style={{
+  position: "relative",
+}}
 >                {/* NEW DROP BADGE */}
                 {product.tag && (
                   <div
@@ -1089,20 +1088,13 @@ setTimeout(() => {
                   </div>
                 )}
 
-<img
+<Image
   className="main-product-img"
   src={thumbnails[activeThumb]}
   alt={product.name}
-  loading="eager"
-  decoding="async"
-  draggable="false"
-style={{
-  width: "100%",
-  objectFit: "contain",
-  display: "block",
-  transform: "translateZ(0)",
-  willChange: "transform",
-}}
+  width={900}
+  height={1100}
+  priority
 />
 
               {/* THUMBNAIL DOTS (mobile) */}
@@ -1149,16 +1141,7 @@ style={{
             </div>
 
             {/* INFO COL */}
-            <motion.div
-              className="info-col"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
-              style={{
-                paddingLeft: 6,
-                paddingTop: 10,
-              }}
-            >
+            <div>
               {/* PRODUCT TITLE */}
               <h1
                 style={{
@@ -1663,7 +1646,7 @@ background:
               ))}
               {/* final border */}
               <div style={{ borderTop: "1px solid #EBEBEB" }} />
-            </motion.div>
+            </div>
           </div>
 
           {/* YOU MAY ALSO LIKE */}
@@ -1750,22 +1733,12 @@ background:
                           {p.tag}
                         </div>
                       )}
-                      <img
+<Image
   src={p.images?.[p.defaultColor || "black"]?.back}
-  loading="lazy"
-  fetchPriority="low"
-  decoding="async"
-  draggable="false"
   alt={p.name}
-  style={{
-    width: "100%",
-    height: "100%",
-    objectFit: "contain",
-    padding: "12px",
-    display: "block",
-    transition: "transform 0.5s ease",
-    contentVisibility: "auto",
-  }}
+  width={500}
+  height={600}
+  loading="lazy"
 />
                     </div>
                     <h3
