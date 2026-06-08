@@ -521,7 +521,7 @@ letterSpacing: "-0.02em",
       style={{
         border: "none",
         background: "#000",
-        color: "#fff",
+        color: "#fff",  
         height: 50,
         minWidth: 195,
         padding: "0 34px",
@@ -655,7 +655,15 @@ function CategorySection({
                 key={cat.id}
                  
                 onClick={() => {
-  setActiveCategory(cat.id);
+  setPageLoading(true);
+
+  setTimeout(() => {
+    setActiveCategory(cat.id);
+
+    setTimeout(() => {
+      setPageLoading(false);
+    }, 300);
+  }, 50);
 }}
                 style={{
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 10,

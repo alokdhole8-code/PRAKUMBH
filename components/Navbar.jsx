@@ -219,7 +219,12 @@ willChange: "top",
             {desktopLeftLinks.map(l => (
               <button
                 key={l}
-                onClick={() => router.push(l === "SHOP" ? "/shop" : "/collection")}
+                onClick={() => {
+  if (setPageLoading) {
+  setPageLoading(true);
+}
+  router.push(l === "SHOP" ? "/shop" : "/collection");
+}}
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontSize: 13,
@@ -255,7 +260,9 @@ willChange: "top",
         {/* ── CENTER LOGO — always perfectly centred via absolute positioning ── */}
         <div
           onClick={() => {
-  setPageLoading?.(true);
+  if (setPageLoading) {
+  setPageLoading(true);
+}
   router.push("/");
 }}
           style={{
@@ -293,7 +300,9 @@ willChange: "top",
   id={icon === "shopping_bag" ? "prakumbh-cart-btn" : undefined}
               onClick={() => {
   if (icon === "person") {
-    setPageLoading?.(true);
+    if (setPageLoading) {
+  setPageLoading(true);
+}
 router.push("/account");
   }
 
@@ -492,6 +501,9 @@ marginTop: -8,
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.06 + i * 0.045, duration: 0.35, ease: EASE }}
 onClick={() => {
+  if (setPageLoading) {
+  setPageLoading(true);
+}
   setDrawerOpen(false);
   router.push(link.href);
 }}
