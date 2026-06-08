@@ -986,7 +986,7 @@ setTimeout(() => {
             <span
               className="breadcrumb-link"
               style={{ cursor: "pointer", color: "#888", transition: "color 0.2s" }}
-              onClick={() => router.push("/shop")}
+              onClick={() => router.push("/")}
             >
               Home
             </span>

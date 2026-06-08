@@ -492,7 +492,6 @@ marginTop: -8,
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.06 + i * 0.045, duration: 0.35, ease: EASE }}
 onClick={() => {
-  setPageLoading(true);
   setDrawerOpen(false);
   router.push(link.href);
 }}
