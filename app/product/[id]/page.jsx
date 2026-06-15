@@ -715,7 +715,7 @@ useEffect(() => {
     if (!validateSelection()) return;
 
     // Trigger flying bag animation
-    // triggerFlyAnimation();
+// triggerFlyAnimation();    
 
     // Existing cart logic — unchanged
     setCartItems((prev) => {
@@ -745,11 +745,14 @@ useEffect(() => {
       ];
     });
 
-    setAddedToCart(true);
+setAddedToCart(true);
+
 setTimeout(() => {
-  window.dispatchEvent(
-    new Event("cartUpdated")
-  );
+  setAddedToCart(false);
+}, 1000); // 2 second baad normal text wapas
+
+setTimeout(() => {
+  window.dispatchEvent(new Event("cartUpdated"));
 }, 50);  };
  
   // ── RELATED PRODUCTS ──────────────────────────────────────────────────────
@@ -890,8 +893,10 @@ setTimeout(() => {
 
         /* ── HOVER STATES ── */
         .thumb-item:hover { opacity: 1 !important; border-color: ${NAVY} !important; }
-        .btn-cart:hover { background: #1a2e42 !important; transform: translateY(-1px); }
-        .btn-buy:hover  { background: #1a1a1a !important; transform: translateY(-1px); }
+.btn-cart:hover {
+  background: ${NAVY} !important;
+  transform: translateY(-1px);
+}        .btn-buy:hover  { background: #1a1a1a !important; transform: translateY(-1px); }
         .btn-cart:active, .btn-buy:active { transform: translateY(0); }
         .size-btn:not([disabled]):hover { border-color: ${NAVY} !important; color: ${NAVY} !important; }
         .offer-box:hover { border-color: ${NAVY} !important; background: #f8f7f4 !important; }
@@ -1515,15 +1520,16 @@ background:
     marginBottom: 10,
   }}
 >
-  <button
-    className="btn-cart"
-    onClick={handleAddToCart}
-    style={S.btnCart}
-  >
-    {addedToCart ? "✓ Added!" : "Add to Cart"}
-  </button>
-
- 
+<button
+  className="btn-cart"
+  onClick={handleAddToCart}
+  style={{
+    ...S.btnCart,
+    background: NAVY,
+  }}
+>
+  {addedToCart ? "✓ Added!" : "Add to Cart"}
+</button>
 </div>
 
               {/* DELIVERY INFO BOX */}
