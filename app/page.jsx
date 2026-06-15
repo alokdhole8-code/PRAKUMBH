@@ -62,7 +62,7 @@ const slides = useRef([
   "/assets/new03.webp",
 ]).current;
   const [activeSlide, setActiveSlide] = useState(0);
-
+const touchStartX = useRef(0);
 useEffect(() => {
   const interval = setInterval(() => {
     setActiveSlide((prev) => (prev + 1) % slides.length);
@@ -71,74 +71,96 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, []);
 
-  return (
-    <section
+return (
+  <section
+    onTouchStart={(e) => {
+      touchStartX.current = e.touches[0].clientX;
+    }}
+    onTouchEnd={(e) => {
+      const diff =
+        touchStartX.current -
+        e.changedTouches[0].clientX;
+
+      if (diff > 50) {
+        setActiveSlide(
+          (prev) => (prev + 1) % slides.length
+        );
+      }
+
+      if (diff < -50) {
+        setActiveSlide(
+          (prev) =>
+            (prev - 1 + slides.length) %
+            slides.length
+        );
+      }
+    }}
+    style={{
+      position: "relative",
+      width: "100%",
+      height: "clamp(260px,50vw,520px)",
+      overflow: "hidden",
+    }}
+  >
+    {/* IMAGE */}
+    {slides.map((slide, index) => (
+      <Image
+        key={slide}
+        src={slide}
+        alt={`Hero ${index + 1}`}
+        fill
+        priority
+        quality={60}
+        sizes="100vw"
+        style={{
+          objectFit: "cover",
+          objectPosition: "center",
+          opacity: activeSlide === index ? 1 : 0,
+          transition: "opacity 1s ease-in-out",
+          position: "absolute",
+        }}
+      />
+    ))}
+
+    {/* DOTS */}
+    <div
       style={{
-        position: "relative",
-        width: "100%",
-        height: "clamp(260px,50vw,520px)",
-        overflow: "hidden",
+        position: "absolute",
+        bottom: 14,
+        left: "50%",
+        transform: "translateX(-50%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        zIndex: 50,
       }}
     >
-      {/* IMAGE */}
-{slides.map((slide, index) => (
-  <Image
-    key={slide}
-    src={slide}
-    alt={`Hero ${index + 1}`}
-    fill
-    priority
-    quality={60}
-    sizes="100vw"
-    style={{
-      objectFit: "cover",
-      objectPosition: "center",
-      opacity: activeSlide === index ? 1 : 0,
-      transition: "opacity 1s ease-in-out",
-      position: "absolute",
-    }}
-  />
-))}
-
-      {/* DOTS */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 14,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-          zIndex: 50,
-        }}
-      >
-        {slides.map((_, i) => (
-          <div
-            key={i}
-            onClick={() => setActiveSlide(i)}
-            style={{
-              width: 8,
-              height: 8,
-              minWidth: 8,
-              minHeight: 8,
-              maxWidth: 8,
-              maxHeight: 8,
-              borderRadius: "50%",
-              flexShrink: 0,
-              cursor: "pointer",
-              transition: "all 0.25s ease",
-              background:
-                activeSlide === i
-                  ? "#ffffff"
-                  : "rgba(255,255,255,0.55)",
-            }}
-          />
-        ))}
-      </div>
-    </section>
-  );
+      {slides.map((_, i) => (
+        <div
+          key={i}
+          onClick={() => setActiveSlide(i)}
+          style={{
+            width: 8,
+            height: 8,
+            minWidth: 8,
+            minHeight: 8,
+            maxWidth: 8,
+            maxHeight: 8,
+            borderRadius: "50%",
+            flexShrink: 0,
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+            background:
+              activeSlide === i
+                ? "#ffffff"
+                : "rgba(255,255,255,0.55)",
+          }}
+        />
+      ))}
+    </div>
+  </section>
+);
 }
 // ─── HERO ────────────────────────────────────────────────────────────────────
  

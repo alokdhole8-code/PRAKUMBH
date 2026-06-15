@@ -57,6 +57,8 @@ export function AnnouncementBar({ hidden }) {
           exit={{ y: -36 }}
           transition={{ duration: 0.3, ease: EASE }}
           style={{
+            transform: "translateZ(0)",
+willChange: "transform",
             background: NAVY,
             height: 36,
             overflow: "hidden",
@@ -159,6 +161,8 @@ export default function Navbar({
           top: barHidden ? 0 : 36,
           transition: "top 0.22s ease-out",
 willChange: "top",
+transform: "translateZ(0)",
+willChange: "transform",
           left: 0,
           width: "100%",
           zIndex: 99999,
@@ -259,10 +263,10 @@ willChange: "top",
 
         {/* ── CENTER LOGO — always perfectly centred via absolute positioning ── */}
         <div
-          onClick={() => {
-  if (setPageLoading) {
-  setPageLoading(true);
-}
+onClick={() => {
+  if (window.location.pathname === "/") return;
+
+  setPageLoading?.(true);
   router.push("/");
 }}
           style={{
@@ -453,8 +457,16 @@ color: "#111",
                     cursor: "pointer",
                     userSelect: "none",
                   }}
-                  onClick={() => { router.push("/"); setDrawerOpen(false); }}
-                >
+onClick={() => {
+  if (window.location.pathname === "/") {
+    setDrawerOpen(false);
+    return;
+  }
+
+  setPageLoading?.(true);
+  setDrawerOpen(false);
+  router.push("/");
+}}                >
                   PRAKUMBH
                 </span>
 

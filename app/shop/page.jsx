@@ -574,7 +574,8 @@ backgroundImage:
 "url('/hero-shop.webp')",
             backgroundSize: "cover", backgroundPosition: "center 30%",
             filter: "brightness(0.38) saturate(0.7)",
-            transform: "scale(1.04)",
+            transform: "translateZ(0) scale(1.04)",
+willChange: "transform",
             transition: "transform 8s ease",
         }} />
 
@@ -793,10 +794,18 @@ useEffect(() => {
     };
 
     return (
-        <div ref={ref} style={{
-        position: "sticky", top: 56, zIndex: 200,
-        background: "#fff", borderBottom: `1px solid ${BORDER}`,
-         }}>
+<div
+  ref={ref}
+  style={{
+    position: "sticky",
+    top: 56,
+    zIndex: 200,
+    background: "#fff",
+    borderBottom: `1px solid ${BORDER}`,
+    willChange: "transform",
+    transform: "translateZ(0)",
+  }}
+>
 <div
   style={{
     maxWidth: 1700,
@@ -1130,20 +1139,12 @@ boxShadow: "0 1px 4px rgba(0,0,0,0.05)", marginBottom: 14 }}>
 <Image
   src={imageSrc}
   alt={product.name}
-  width={600}
-  height={700}
-  priority={index < 2}
-loading={index < 2 ? "eager" : "lazy"}
-  quality={50}
-  sizes="(max-width:640px) 50vw,
-(max-width:1200px) 25vw,
-20vw"
-style={{
-  width: "100%",
-  height: "auto",
-  objectFit: "cover",
-  display: "block",
-}}
+  width={400}
+  height={500}
+  priority={false}
+  loading="lazy"
+  quality={35}
+  sizes="(max-width:640px) 50vw, 25vw"
 />
 
              
@@ -1453,9 +1454,11 @@ else if (activeCategory !== "all") {
             * { -webkit-tap-highlight-color: transparent; }
 
             /* RESPONSIVE PRODUCT GRID */
-            .shop-product-grid {
+.shop-product-grid {
   grid-template-columns: repeat(5, 1fr);
   contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: 1200px;
 }
             @media (max-width: 1200px) { .shop-product-grid { grid-template-columns: repeat(4, 1fr); } }
             @media (max-width: 900px)  { .shop-product-grid { grid-template-columns: repeat(3, 1fr); } }
