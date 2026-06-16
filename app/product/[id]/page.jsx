@@ -7,90 +7,186 @@ import Navbar, { AnnouncementBar } from "@/components/Navbar";
 import { useCart } from "@/components/CartProvider";
 import Image from "next/image";
 import { handleBuyNow } from "@/lib/buyNow";
+import CustomerReviews from "@/components/CustomerReviews";
 
+// ─── FLY-TO-CART CSS (paste after imports, outside component) ────────────────
+if (typeof window !== "undefined" && !document.getElementById("ftc-css")) {
+  const s = document.createElement("style");
+  s.id = "ftc-css";
+  s.textContent = `
+    @keyframes ftcCartBounce {
+      0%   { transform: scale(1)    rotate(0deg); }
+      14%  { transform: scale(1.38) rotate(-18deg); }
+      28%  { transform: scale(1.26) rotate(14deg); }
+      42%  { transform: scale(1.18) rotate(-10deg); }
+      56%  { transform: scale(1.10) rotate(6deg); }
+      70%  { transform: scale(1.05) rotate(-3deg); }
+      84%  { transform: scale(1.02) rotate(1deg); }
+      100% { transform: scale(1)    rotate(0deg); }
+    }
+    .ftc-bounce { animation: ftcCartBounce 620ms cubic-bezier(0.36,0.07,0.19,0.97) forwards; }
+    @keyframes ftcBadgePulse {
+      0%   { transform: scale(1);    box-shadow: 0 0 0 0   rgba(200,60,60,0.55); }
+      30%  { transform: scale(1.65); box-shadow: 0 0 0 6px rgba(200,60,60,0.22); }
+      60%  { transform: scale(0.88); box-shadow: 0 0 0 9px rgba(200,60,60,0.06); }
+      100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(200,60,60,0); }
+    }
+    .ftc-badge-pulse > span,
+    .ftc-badge-pulse > div { animation: ftcBadgePulse 700ms cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .ftc-spark { position:fixed; top:0; left:0; border-radius:50%; pointer-events:none; z-index:2147483646; will-change:transform,opacity; }
+    .ftc-ring  { position:fixed; border-radius:50%; pointer-events:none; z-index:2147483645; }
+    .ftc-item  {
+      position:fixed; top:0; left:0; width:64px; height:64px;
+      border-radius:14px; overflow:hidden;
+      border:2.5px solid rgba(255,255,255,0.92);
+      box-shadow:0 8px 32px rgba(0,0,0,0.32),0 2px 8px rgba(0,0,0,0.18);
+      pointer-events:none; z-index:2147483647;
+      will-change:transform,opacity; background:#f4f3f0;
+    }
+  `;
+  document.head.appendChild(s);
+}
 
 const EASE = [0.16, 1, 0.3, 1];
-
-// ─── FLYING BAG ANIMATION COMPONENT ─────────────────────────────────────────
-function FlyingItem({ fly, onComplete }) {
+ // ─── SPARKLE ────────────────────────────────────────────────────────────────
+function Sparkle({ cx, cy, size, color, tx, ty, delay }) {
   const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.animate(
+      [{ transform:"translate(0,0) scale(1)", opacity:1 },
+       { transform:`translate(${tx}px,${ty}px) scale(0)`, opacity:0 }],
+      { duration:500, delay, easing:"cubic-bezier(0.2,0,0.8,1)", fill:"forwards" }
+    );
+  }, [tx, ty, delay]);
+  return (
+    <div ref={ref} className="ftc-spark"
+      style={{ width:size, height:size, left:cx-size/2, top:cy-size/2, background:color }} />
+  );
+}
+
+// ─── IMPACT RING ─────────────────────────────────────────────────────────────
+function ImpactRing({ cx, cy }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.animate(
+      [{ transform:"scale(0.5)", opacity:0.9, borderWidth:"3px" },
+       { transform:"scale(2.8)", opacity:0,   borderWidth:"0.5px" }],
+      { duration:550, easing:"cubic-bezier(0.2,0,0.5,1)", fill:"forwards" }
+    );
+  }, []);
+  return (
+    <div ref={ref} className="ftc-ring"
+      style={{ width:44, height:44, left:cx-22, top:cy-22, border:"3px solid #FFD700" }} />
+  );
+}
+
+// ─── PREMIUM FLYING ITEM ──────────────────────────────────────────────────────
+const SPARK_COLORS = ["#FFD700","#FFC107","#fff","#B3D9FF","#FF9DC4","#A8FFD1","#FF7043","#E040FB"];
+
+function FlyingItem({ fly, onComplete }) {
+  const ref     = useRef(null);
+  const rafRef  = useRef(null);
+  const tsRef   = useRef(null);
+  const [impact, setImpact]   = useState(null);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     if (!fly || !ref.current) return;
-
     const el = ref.current;
     const { startX, startY, endX, endY } = fly;
 
-    // Midpoint for bezier arc — curves upward between start and end
-    const midX = (startX + endX) / 2;
-    const midY = Math.min(startY, endY) - 130;
+    // Cubic bezier control points — high arc, premium feel
+    const dx  = endX - startX;
+    const dy  = endY - startY;
+    const up  = Math.min(Math.abs(dy), 180) + 80;
+    const cp1x = startX + dx * 0.08,  cp1y = startY - up;
+    const cp2x = startX + dx * 0.82,  cp2y = endY   - up * 0.35;
 
-    let start = null;
-    const duration = 450;
-
-    function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    function cb(t, p0, p1, p2, p3) {
+      const m = 1 - t;
+      return m*m*m*p0 + 3*m*m*t*p1 + 3*m*t*t*p2 + t*t*t*p3;
+    }
+    function ease(t) {
+      return t < 0.5 ? Math.pow(2,20*t-10)/2 : (2-Math.pow(2,-20*t+10))/2;
     }
 
-    function quadBezier(t, p0, p1, p2) {
-      return (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
-    }
+    function frame(ts) {
+      if (!tsRef.current) tsRef.current = ts;
+      const raw = Math.min((ts - tsRef.current) / 950, 1);
+      const t   = ease(raw);
 
-    function animate(timestamp) {
-      if (!start) start = timestamp;
-      const elapsed = timestamp - start;
-      const rawT = Math.min(elapsed / duration, 1);
-      const t = easeInOutCubic(rawT);
+      const x   = cb(t, startX, cp1x, cp2x, endX);
+      const y   = cb(t, startY, cp1y, cp2y, endY);
+      const sc  = raw < 0.4 ? 1 + raw*0.15 : 1.06 - (raw-0.4)/0.6*0.71;
+      const rot = Math.sin(raw * Math.PI) * 26 * (1 - raw*0.6);
+      const wob = Math.sin(raw * Math.PI * 3.2) * (1-raw) * 7;
+      const op  = raw < 0.78 ? 1 : 1-(raw-0.78)/0.22;
 
-      const x = quadBezier(t, startX, midX, endX);
-      const y = quadBezier(t, startY, midY, endY);
+      el.style.transform = `translate3d(${x+wob}px,${y}px,0) scale(${sc}) rotate(${rot}deg)`;
+      el.style.opacity   = op;
 
-      const scale = 1 - t * 0.6;
-      const opacity = rawT < 0.75 ? 1 : 1 - (rawT - 0.75) / 0.25;
-
-      el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
-      el.style.opacity = opacity;
-
-      if (rawT < 1) {
-        requestAnimationFrame(animate);
+      if (raw < 1) {
+        rafRef.current = requestAnimationFrame(frame);
       } else {
-        onComplete(fly.id);
+        // Landing
+        setVisible(false);
+        setImpact({ cx: endX+32, cy: endY+32 });
+        // Bounce cart icon
+        const cartEl = document.querySelector(".cart-icon-target");
+        if (cartEl) {
+          cartEl.classList.remove("ftc-bounce");
+          void cartEl.offsetWidth;
+          cartEl.classList.add("ftc-bounce");
+          cartEl.classList.add("ftc-badge-pulse");
+          setTimeout(() => {
+            cartEl.classList.remove("ftc-bounce","ftc-badge-pulse");
+          }, 720);
+        }
+        setTimeout(() => onComplete(fly.id), 750);
       }
     }
-
-    requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(frame);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [fly, onComplete]);
 
   if (!fly) return null;
 
+  const sparks = impact ? Array.from({length:14},(_,i)=>{
+    const angle = i*(360/14)+Math.random()*25;
+    const dist  = 18+Math.random()*32;
+    const rad   = angle*Math.PI/180;
+    return {
+      id:i, cx:impact.cx, cy:impact.cy,
+      size:3+Math.random()*6,
+      color:SPARK_COLORS[i%SPARK_COLORS.length],
+      tx:Math.cos(rad)*dist, ty:Math.sin(rad)*dist,
+      delay:Math.random()*60
+    };
+  }) : [];
+
   return (
-    <div
-      ref={ref}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: 54,
-        height: 54,
-        borderRadius: "50%",
-        overflow: "hidden",
-        border: "2.5px solid #fff",
-        boxShadow: "0 6px 24px rgba(0,0,0,0.28)",
-        pointerEvents: "none",
-        zIndex: 9999999,
-        willChange: "transform, opacity",
-        background: "#f4f3f0",
-        transform: `translate3d(${fly.startX}px, ${fly.startY}px, 0) scale(1)`,
-        opacity: 1,
-      }}
-    >
-      <img
-        src={fly.imgSrc}
-        alt=""
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        draggable="false"
-      />
-    </div>
+    <>
+      {visible && (
+        <div ref={ref} className="ftc-item"
+          style={{ transform:`translate3d(${fly.startX}px,${fly.startY}px,0) scale(1)`, opacity:1 }}>
+          <img src={fly.imgSrc} alt="" draggable={false}
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+          <div style={{ position:"absolute", inset:0,
+            background:"linear-gradient(135deg,rgba(255,255,255,0.25) 0%,rgba(255,255,255,0) 60%)",
+            pointerEvents:"none" }} />
+        </div>
+      )}
+      {impact && (
+        <>
+          <ImpactRing cx={impact.cx} cy={impact.cy} />
+          {sparks.map(s => <Sparkle key={s.id} {...s} />)}
+        </>
+      )}
+    </>
   );
 }
 
@@ -584,6 +680,12 @@ export default function ProductDetailPage() {
   const product = products.find((p) => String(p.id) === String(params?.id)) || products[0];
 
   const [activeThumb, setActiveThumb] = useState(0);
+
+const touchStartX = useRef(0);
+const touchEndX = useRef(0);
+  
+ 
+
   const [selectedColor, setSelectedColor] = useState(
     product.defaultColor || "black"
   );
@@ -676,49 +778,59 @@ useEffect(() => {
   };
 
   // ── FLYING ANIMATION TRIGGER ──────────────────────────────────────────────
-  const triggerFlyAnimation = useCallback(() => {
-    const imgEl = document.querySelector(".main-product-img");
-    const cartEl = document.querySelector(".cart-icon-target");
+const triggerFlyAnimation = useCallback(
+  (buttonEl) => {
+    const cartEl =
+      document.querySelector(".cart-icon-target");
 
-    if (imgEl && cartEl) {
-      const imgRect = imgEl.getBoundingClientRect();
-      const cartRect = cartEl.getBoundingClientRect();
+    if (!buttonEl || !cartEl) return;
 
-      // Center of product image → center of cart icon, offset by half thumb size (27px)
-      const startX = imgRect.left + imgRect.width / 2 - 27;
-      const startY = imgRect.top + imgRect.height / 2 - 27;
-      const endX = cartRect.left + cartRect.width / 2 - 27;
-      const endY = cartRect.top + cartRect.height / 2 - 27;
+    const btnRect =
+      buttonEl.getBoundingClientRect();
 
-      const flyId = Date.now() + Math.random();
-      setFlyItems((prev) => [
-        ...prev,
-        {
-          id: flyId,
-          startX,
-          startY,
-          endX,
-          endY,
-          imgSrc: thumbnails[activeThumb],
-        },
-      ]);
+    const cartRect =
+      cartEl.getBoundingClientRect();
 
-      // Cart icon shake triggers ~50ms before animation ends
-      setTimeout(() => {
-        // setCartShaking(true);
-        // setTimeout(() => setCartShaking(false), 600);
-      }, 820);
-    }
-  }, [thumbnails, activeThumb]);
+    const startX =
+      btnRect.left + btnRect.width / 2 - 27;
 
-  const handleAddToCart = () => {
-    if (!validateSelection()) return;
+    const startY =
+      btnRect.top + btnRect.height / 2 - 27;
 
-    // Trigger flying bag animation
-// triggerFlyAnimation();    
+    const endX =
+      cartRect.left + cartRect.width / 2 - 27;
 
-    // Existing cart logic — unchanged
-    setCartItems((prev) => {
+    const endY =
+      cartRect.top + cartRect.height / 2 - 27;
+
+    const flyId = Date.now() + Math.random();
+
+    setFlyItems((prev) => [
+      ...prev,
+      {
+        id: flyId,
+        startX,
+        startY,
+        endX,
+        endY,
+        imgSrc: thumbnails[activeThumb],
+      },
+    ]);
+
+    setTimeout(() => {
+      setCartShaking(true);
+      setTimeout(() => setCartShaking(false), 600);
+    }, 820);
+  },
+  [thumbnails, activeThumb]
+);
+
+const handleAddToCart = (e) => {
+  if (!validateSelection()) return;
+
+  triggerFlyAnimation(e.currentTarget); // <-- add this
+
+  setCartItems((prev) => {
       const exists = prev.find(
         (item) =>
           item.id === product.id &&
@@ -1020,11 +1132,10 @@ setTimeout(() => {
               }}
             >
               {thumbnails.slice(0, 2).map((src, i) => (
-                <motion.div
-                  key={i}
-                  className="thumb-item"
-                  onClick={() => setActiveThumb(i)}
-                  whileHover={{ opacity: 1 }}
+                <div
+  key={i}
+  className="thumb-item"
+  onClick={() => setActiveThumb(i)}
                   style={S.thumb(activeThumb === i)}
                 >
                   <img
@@ -1040,7 +1151,7 @@ setTimeout(() => {
                       display: "block",
                     }}
                   />
-                </motion.div>
+                </div>
               ))}
             </div>
 
@@ -1093,14 +1204,34 @@ style={{
                   </div>
                 )}
 
+<div
+  style={{ touchAction: "pan-y" }}
+  onTouchStart={(e) => {
+    touchStartX.current = e.touches[0].clientX;
+  }}
+  onTouchEnd={(e) => {
+    const diff =
+      touchStartX.current - e.changedTouches[0].clientX;
+
+    if (diff > 50 && activeThumb < thumbnails.length - 1) {
+      setActiveThumb(activeThumb + 1);
+    }
+
+    if (diff < -50 && activeThumb > 0) {
+      setActiveThumb(activeThumb - 1);
+    }
+  }}
+>
 <Image
   className="main-product-img"
   src={thumbnails[activeThumb]}
   alt={product.name}
   width={900}
   height={1100}
-  priority
-/>
+  loading="lazy"
+    draggable={false}
+  />
+</div>
 
               {/* THUMBNAIL DOTS (mobile) */}
               <div
@@ -1522,7 +1653,7 @@ background:
 >
 <button
   className="btn-cart"
-  onClick={handleAddToCart}
+  onClick={(e) => handleAddToCart(e)}
   style={{
     ...S.btnCart,
     background: NAVY,
@@ -1780,7 +1911,15 @@ background:
             </section>
           )}
         </div>
-
+{/* CUSTOMER REVIEWS */}
+<section
+  style={{
+    marginTop: 80,
+    marginBottom: 80,
+  }}
+>
+  <CustomerReviews productId={product.id} />
+</section>
         {/* FOOTER */}
 {/* FOOTER STRIP */}
 <div

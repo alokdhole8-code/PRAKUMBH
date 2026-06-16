@@ -302,6 +302,8 @@ onClick={() => {
            <button
   key={icon}
   id={icon === "shopping_bag" ? "prakumbh-cart-btn" : undefined}
+    className={icon === "shopping_bag" ? "cart-icon-target" : ""}
+
               onClick={() => {
   if (icon === "person") {
     if (setPageLoading) {

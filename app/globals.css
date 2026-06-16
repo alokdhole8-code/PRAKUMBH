@@ -66,3 +66,17 @@ body {
   will-change: opacity;
 }
 
+/* PERFORMANCE OPTIMIZATION */
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.main-product-img {
+  content-visibility: auto;
+}
+
+.related-card {
+  content-visibility: auto;
+}
