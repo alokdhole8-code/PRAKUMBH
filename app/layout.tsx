@@ -21,15 +21,48 @@ const barlow = Barlow_Condensed({
   weight: ["400", "500", "600", "700"],
 });
 export const metadata: Metadata = {
-  title: "Prakumbh",
-  description: "Prakumbh Store",
+  metadataBase: new URL("https://prakumbhclothing.com"),
+
+  title: {
+    default: "Prakumbh | Premium Maharashtrian Streetwear",
+    template: "%s | Prakumbh",
+  },
+
+  description:
+    "Shop premium Maharashtrian streetwear inspired by history, culture and heritage. High-quality oversized and regular fit T-shirts from Prakumbh.",
+
+  keywords: [
+    "Prakumbh",
+    "Prakumbh Clothing",
+    "Maratha T Shirt",
+    "Shivaji Maharaj T Shirt",
+    "Streetwear India",
+    "Oversized T Shirt",
+    "Maharashtra Clothing",
+  ],
+
+  alternates: {
+    canonical: "https://prakumbhclothing.com",
+  },
+
+  openGraph: {
+    title: "Prakumbh",
+    description:
+      "Premium Maharashtrian Streetwear Brand",
+    url: "https://prakumbhclothing.com",
+    siteName: "Prakumbh",
+    type: "website",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
+
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/web-app-manifest-192x192.png",
   },
 };
-
 export default function RootLayout({
   children,
 }: {
