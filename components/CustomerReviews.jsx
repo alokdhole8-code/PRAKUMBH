@@ -25,7 +25,7 @@ import {
   useCallback,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { supabase } from "@/lib/supabase";
 /* ══════════════════════════════════════════════
    DESIGN TOKENS  –  Navy / Gold / White
 ══════════════════════════════════════════════ */
@@ -56,22 +56,7 @@ const T = {
 ══════════════════════════════════════════════ */
 const LS_KEY = (pid) => `reviews_${pid}`;
 
-function loadReviews(productId) {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(LS_KEY(productId));
-    return raw ? JSON.parse(raw) : SEED_REVIEWS.map((r) => ({ ...r, productId }));
-  } catch {
-    return [];
-  }
-}
-
-function saveReviews(productId, reviews) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(LS_KEY(productId), JSON.stringify(reviews));
-  } catch {}
-}
+ 
 
 function initials(name = "") {
   return name
@@ -220,7 +205,7 @@ function Lightbox({ src, onClose }) {
 /* Single review card */
 function ReviewCard({
   review,
-  currentUser,
+  currentOwnerId,
   onHelpful,
   onImageClick,
   isMostHelpful,
@@ -263,7 +248,8 @@ function ReviewCard({
               border: `1px solid ${T.gold}`, borderRadius: 4,
               padding: "1px 7px", letterSpacing: 0.6,
             }}>✓ VERIFIED</span>
-{true && (  <button
+{currentOwnerId === review.ownerId && (
+    <button
     onClick={() => onDelete(review.id)}
     style={{
       marginLeft: "auto",
@@ -640,34 +626,82 @@ function PhotoGallery({ photos, onImageClick }) {
 ══════════════════════════════════════════════ */
 export default function CustomerReviews({ productId = "default" }) {
   const [reviews, setReviews]       = useState([]);
+
+const loadReviews = useCallback(async () => {
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("*")
+    .eq("product_id", productId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  setReviews(
+    (data || []).map((r) => ({
+      id: r.id,
+      productId: r.product_id,
+      customerName: r.name,
+      rating: r.rating,
+      comment: r.review,
+      helpful: 0,
+      images: [],
+      createdAt: r.created_at,
+      ownerId: r.owner_id,
+    }))
+  );
+}, [productId]);
+
   const [lightbox, setLightbox]     = useState(null);
   const [sort, setSort]             = useState("latest");
   const [search, setSearch]         = useState("");
   const [showForm, setShowForm]     = useState(false);
   const [mounted, setMounted]       = useState(false);
-const [currentUser, setCurrentUser] = useState("");
+const [currentOwnerId, setCurrentOwnerId] = useState("");
   // Hydrate from localStorage after mount
 useEffect(() => {
   setMounted(true);
-  setReviews(loadReviews(productId));
+  loadReviews();
 
-  const user = localStorage.getItem("reviewUserName");
-  if (user) {
-    setCurrentUser(user);
-  }
+let ownerId = localStorage.getItem("reviewOwnerId");
+
+if (!ownerId) {
+  ownerId = crypto.randomUUID();
+  localStorage.setItem("reviewOwnerId", ownerId);
+}
+
+setCurrentOwnerId(ownerId);
 }, [productId]);
-  const addReview = useCallback(
-    (review) => {
-      setReviews((prev) => {
-        const next = [review, ...prev];
-        saveReviews(productId, next);
-        return next;
-      });
-      setShowForm(false);
-    },
-    [productId]
-  );
+const addReview = async (review) => {
 
+  let ownerId = localStorage.getItem("reviewOwnerId");
+
+if (!ownerId) {
+  ownerId = crypto.randomUUID();
+  localStorage.setItem("reviewOwnerId", ownerId);
+} 
+
+
+  const { error } = await supabase
+.from("reviews")
+.insert([
+{
+product_id: review.productId,
+name: review.customerName,
+rating: review.rating,
+review: review.comment,
+owner_id: ownerId,
+},
+]);
+if (!error) {
+  localStorage.setItem("reviewUserName", review.customerName);
+ 
+  loadReviews();
+  setShowForm(false);
+}
+};
 const markHelpful = useCallback(
   (id) => {
     const voteKey = `helpful_${productId}_${id}`;
@@ -684,8 +718,7 @@ const markHelpful = useCallback(
           : r
       );
 
-      saveReviews(productId, next);
-
+ 
       // save vote
       localStorage.setItem(voteKey, "true");
 
@@ -695,20 +728,29 @@ const markHelpful = useCallback(
   [productId]
 );
 
-const deleteReview = useCallback(
-  (id) => {
-    const ok = window.confirm("Delete this review?");
-    if (!ok) return;
+const deleteReview = async (id) => {
+  const ok = window.confirm("Delete this review?");
+  if (!ok) return;
 
-    setReviews((prev) => {
-      const next = prev.filter((r) => r.id !== id);
-      saveReviews(productId, next);
-      return next;
+  const ownerId = localStorage.getItem("reviewOwnerId");
+
+  const { error } = await supabase
+    .from("reviews")
+    .delete()
+    .match({
+      id: id,
+      owner_id: ownerId,
     });
-  },
-  [productId]
-);
 
+  if (error) {
+    console.log(error);
+    alert(error.message);
+    return;
+  }
+
+  // Database se fresh data load karo
+  await loadReviews();
+};
   /* ── Analytics ── */
   const analytics = useMemo(() => {
     if (!reviews.length) return null;
@@ -724,7 +766,28 @@ const deleteReview = useCallback(
     const withPhotos = reviews.filter((r) => r.images?.length > 0).length;
     return { avg, total, dist, recPct, withPhotos };
   }, [reviews]);
+useEffect(() => {
+  loadReviews();
 
+  const channel = supabase
+    .channel("reviews")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "reviews",
+      },
+      () => {
+        loadReviews();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [loadReviews]);
   /* ── All customer photos ── */
   const allPhotos = useMemo(
     () => reviews.flatMap((r) => r.images ?? []),
@@ -994,7 +1057,7 @@ const deleteReview = useCallback(
 <ReviewCard
   key={review.id}
   review={review}
-  currentUser={currentUser}
+  currentOwnerId={currentOwnerId}
   onHelpful={markHelpful}
   onImageClick={setLightbox}
   onDelete={deleteReview}

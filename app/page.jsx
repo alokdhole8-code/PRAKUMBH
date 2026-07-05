@@ -98,7 +98,7 @@ return (
     style={{
       position: "relative",
       width: "100%",
-      height: "clamp(260px,50vw,520px)",
+      height: "clamp(20px,50vw,970px)",
       overflow: "hidden",
     }}
   >
@@ -232,10 +232,39 @@ style={{
     transition={{
       duration: 0.35,
     }}
-    onClick={(e) => {
-      e.stopPropagation();
-      // existing code
-    }}
+onClick={(e) => {
+  e.stopPropagation();
+
+  const cartProduct = {
+    ...product,
+    selectedColor,
+    selectedSize: "M",
+    quantity: 1,
+    image:
+      product.images?.[selectedColor]?.back ||
+      product.images?.[product.defaultColor || "black"]?.back,
+  };
+
+  setCartItems((prev) => {
+    const existingIndex = prev.findIndex(
+      (item) =>
+        item.id === product.id &&
+        item.selectedColor === selectedColor &&
+        item.selectedSize === "M"
+    );
+
+    if (existingIndex !== -1) {
+      const updated = [...prev];
+      updated[existingIndex].quantity =
+        (updated[existingIndex].quantity || 1) + 1;
+      return updated;
+    }
+
+    return [...prev, cartProduct];
+  });
+
+  setCartOpen(true);
+}}
     style={{
       position: "absolute",
       left: 18,
@@ -2106,24 +2135,30 @@ setTimeout(() => {
     © 2025 Prakumbh. India's Premium Streetwear.
   </div>
 
-  <div style={{ display: "flex", gap: 24 }}>
-    {["Instagram", "Twitter", "YouTube"].map((s) => (
-      <a
-        key={s}
-        href="#"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          fontSize: 12,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
-          textDecoration: "none",
-        }}
-      >
-        {s}
-      </a>
-    ))}
-  </div>
+<div style={{ display: "flex", gap: 24 }}>
+  <a
+    href="https://www.instagram.com/prakumbhclothing?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+      fontFamily: "'Barlow Condensed', sans-serif",
+      fontSize: 12,
+      letterSpacing: "0.12em",
+      textTransform: "uppercase",
+      color: "rgba(255,255,255,0.55)",
+      textDecoration: "none",
+      transition: "color .25s ease",
+    }}
+    onMouseEnter={(e) =>
+      (e.currentTarget.style.color = "#D4AF37")
+    }
+    onMouseLeave={(e) =>
+      (e.currentTarget.style.color = "rgba(255,255,255,0.55)")
+    }
+  >
+    Instagram
+  </a>
+</div>
 </div>
         {pageLoading && (
   <div
