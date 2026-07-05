@@ -59,9 +59,14 @@ export const metadata: Metadata = {
     follow: true,
   },
 
-  icons: {
-    icon: "/favicon.ico",
-  },
+icons: {
+  icon: [
+    { url: "/favicon.ico" },
+    { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+  ],
+  shortcut: "/favicon.ico",
+  apple: "/apple-touch-icon.png",
+},
 };
 export default function RootLayout({
   children,
