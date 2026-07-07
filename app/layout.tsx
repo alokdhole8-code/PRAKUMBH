@@ -82,9 +82,9 @@ export default function RootLayout({
         <CartProvider>
           {children}
         </CartProvider>
-
-        <Script
-  src="https://www.googletagmanager.com/gtag/js?id=G-Q9JE91S8YN"
+ 
+<Script
+  src="https://www.googletagmanager.com/gtag/js?id=G-XY7TN7LXEK"
   strategy="afterInteractive"
 />
 
@@ -93,7 +93,7 @@ export default function RootLayout({
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-Q9JE91S8YN');
+    gtag('config', 'G-XY7TN7LXEK');
   `}
 </Script>
       </body>
