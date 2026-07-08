@@ -93,6 +93,15 @@ const ADDRESS_INPUT_STYLE = {
   background: "#fff",
 };
 
+const CITY_PINCODE_INPUT_STYLE = {
+  height: 52,
+  border: "1px solid #e7e7e7",
+  borderRadius: 16,
+  padding: "0 16px",
+  fontSize: 15,
+  outline: "none",
+};
+
 // Global page CSS as a static string — built once at module load instead of
 // being reconstructed via template literal on every ShopPageContent render.
 const PAGE_STYLES = `
@@ -182,6 +191,7 @@ const CartDrawer = memo(function CartDrawer({
   setCartOpen,
   cartItems,
   setCartItems,
+  cartTotal,
   addressOpen,
   setAddressOpen,
   customer,
@@ -238,19 +248,14 @@ const CartDrawer = memo(function CartDrawer({
     [setCartItems]
   );
 
-  // Reduce over cartItems only recomputed when cartItems actually changes,
-  // instead of on every render of the drawer (e.g. while typing in the
-  // address modal which lives in a sibling tree but can still trigger
-  // re-renders through context).
-  const cartTotal = useMemo(
-    () =>
-      cartItems.reduce(
-        (t, item) =>
-          t + Number(item.price.replace("₹", "").replace(".00", "")) * (item.quantity || 1),
-        0
-      ),
-    [cartItems]
-  );
+  const closeCart = useCallback(() => setCartOpen(false), [setCartOpen]);
+  const openAddress = useCallback(() => setAddressOpen(true), [setAddressOpen]);
+
+  // `cartTotal` is now computed exactly once, in the parent (ShopPageContent),
+  // and passed down as a prop — previously this exact reduce() over
+  // `cartItems` ran a second time here AND a third time inside
+  // handlePlaceOrder, all from the same source array. Removing the local
+  // useMemo means one calculation instead of three per cartItems change.
 
   return (
     <AnimatePresence>
@@ -262,7 +267,7 @@ const CartDrawer = memo(function CartDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            onClick={() => setCartOpen(false)}
+            onClick={closeCart}
             style={{
               position: "fixed",
               inset: 0,
@@ -292,7 +297,8 @@ const CartDrawer = memo(function CartDrawer({
           >
             {/* CLOSE */}
             <button
-              onClick={() => setCartOpen(false)}
+              onClick={closeCart}
+              aria-label="Close cart"
               style={{
                 border: "none",
                 background: "transparent",
@@ -405,6 +411,7 @@ const CartDrawer = memo(function CartDrawer({
                           >
                             <button
                               onClick={() => decrementQty(item)}
+                              aria-label="Decrease quantity"
                               style={{
                                 width: 48,
                                 height: "100%",
@@ -431,6 +438,7 @@ const CartDrawer = memo(function CartDrawer({
 
                             <button
                               onClick={() => incrementQty(item)}
+                              aria-label="Increase quantity"
                               style={{
                                 width: 48,
                                 height: "100%",
@@ -447,6 +455,7 @@ const CartDrawer = memo(function CartDrawer({
 
                           <button
                             onClick={() => removeItem(item)}
+                            aria-label={`Remove ${item.name} from cart`}
                             style={{
                               border: "none",
                               background: "transparent",
@@ -498,7 +507,7 @@ const CartDrawer = memo(function CartDrawer({
                   </p>
 
                   <button
-                    onClick={() => setAddressOpen(true)}
+                    onClick={openAddress}
                     style={{
                       width: "100%",
                       height: 58,
@@ -560,7 +569,7 @@ const CartDrawer = memo(function CartDrawer({
                 </p>
 
                 <button
-                  onClick={() => setCartOpen(false)}
+                  onClick={closeCart}
                   style={{
                     border: "none",
                     background: "#000",
@@ -793,6 +802,8 @@ const FilterBar = memo(function FilterBar({ filters, setFilters, sort, setSort, 
     [setFilters]
   );
 
+  const closeMobileFilter = useCallback(() => setMobileFilterOpen(false), []);
+
   const hasFilters = filters.sizes.length > 0 || filters.priceRange || filters.inStock;
 
   return (
@@ -824,7 +835,7 @@ const FilterBar = memo(function FilterBar({ filters, setFilters, sort, setSort, 
               {mobileFilterOpen && (
                 <>
                   <div
-                    onClick={() => setMobileFilterOpen(false)}
+                    onClick={closeMobileFilter}
                     style={{
                       position: "fixed",
                       inset: 0,
@@ -858,7 +869,8 @@ const FilterBar = memo(function FilterBar({ filters, setFilters, sort, setSort, 
                       <h2 style={{ fontSize: 24, color: NAVY, fontWeight: 700 }}>Filter</h2>
 
                       <button
-                        onClick={() => setMobileFilterOpen(false)}
+                        onClick={closeMobileFilter}
+                        aria-label="Close filters"
                         style={{
                           border: "none",
                           background: "transparent",
@@ -969,7 +981,7 @@ const FilterBar = memo(function FilterBar({ filters, setFilters, sort, setSort, 
 
                     {/* BUTTON */}
                     <button
-                      onClick={() => setMobileFilterOpen(false)}
+                      onClick={closeMobileFilter}
                       style={{
                         position: "fixed",
                         left: 30,
@@ -1019,8 +1031,21 @@ const ShopProductCard = memo(
       router.push(`/product/${product.id}`);
     }, [setPageLoading, router, product.id]);
 
+    // Prefetch the product route as soon as intent is likely (hover on
+    // desktop, touchstart on mobile) instead of waiting for the click. This
+    // uses Next.js's built-in client-side route cache, so navigation feels
+    // instant without any change to the visual behavior of the card.
+    const handlePrefetch = useCallback(() => {
+      router.prefetch(`/product/${product.id}`);
+    }, [router, product.id]);
+
     return (
-      <div onClick={handleCardClick} style={{ cursor: "pointer" }}>
+      <div
+        onClick={handleCardClick}
+        onMouseEnter={handlePrefetch}
+        onTouchStart={handlePrefetch}
+        style={{ cursor: "pointer" }}
+      >
         {/* IMAGE WRAP */}
         <div
           style={{
@@ -1087,6 +1112,15 @@ const ShopProductCard = memo(
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedColor(colorKey);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Select ${colorKey} color`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation();
+                    setSelectedColor(colorKey);
+                  }
                 }}
                 style={{
                   width: 13,
@@ -1204,8 +1238,18 @@ function ShopPageContent() {
   const [city, setCity] = useState("");
   const [pincode, setPincode] = useState("");
 
-  const isFormValid =
-    fullName.trim() && phone.trim() && address.trim() && city.trim() && pincode.trim();
+  // Memoized: on every keystroke in ANY of the six address fields, this used
+  // to re-run five `.trim()` calls even though only one field actually
+  // changed. Trivial cost individually, but it's recomputed on every render
+  // of a component whose whole job during checkout is "respond to
+  // keystrokes instantly" — worth eliminating.
+  const isFormValid = useMemo(
+    () =>
+      Boolean(
+        fullName.trim() && phone.trim() && address.trim() && city.trim() && pincode.trim()
+      ),
+    [fullName, phone, address, city, pincode]
+  );
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -1303,10 +1347,13 @@ function ShopPageContent() {
     return list;
   }, [activeCategory, sort, filters]);
 
-  // Cart total for the address modal — memoized so it isn't recomputed on
-  // every keystroke while typing name/phone/address/etc. (it only depends on
-  // cartItems).
-  const addressModalTotal = useMemo(
+  // Cart total AND quantity — each computed exactly once whenever cartItems
+  // changes, then shared by CartDrawer, the address modal, and
+  // handlePlaceOrder's order payload. Previously the same reduce() over
+  // cartItems ran up to FOUR separate times per render (once in CartDrawer,
+  // once for the address-modal total, and twice more inside
+  // handlePlaceOrder for `total` and `amount`).
+  const cartTotal = useMemo(
     () =>
       cartItems.reduce(
         (total, item) =>
@@ -1316,38 +1363,66 @@ function ShopPageContent() {
     [cartItems]
   );
 
+  const cartQuantity = useMemo(
+    () => cartItems.reduce((t, i) => t + (i.quantity || 1), 0),
+    [cartItems]
+  );
+
+  const closeAddressModal = useCallback(() => setAddressOpen(false), []);
+
+  // Named async function with proper error handling instead of a bare
+  // `.catch(console.error)` tacked onto a fire-and-forget promise chain.
+  const sendOrderToAppsScript = useCallback(async (orderPayload) => {
+    try {
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbxYG8KeTKrt2sLhhrCyJ52m0E5XWUTzZYsYcmObNoDJm5q_ol_jXv_1XIM-lnTo-YsrLg/exec",
+        {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderPayload),
+        }
+      );
+    } catch (err) {
+      console.error("Failed to sync order with Google Apps Script:", err);
+    }
+  }, []);
+
   const handlePlaceOrder = useCallback(() => {
     if (!isFormValid) return;
 
     const message = "Send this message to confirm your order.";
 
-    const currentUser = JSON.parse(localStorage.getItem("prakumbh_current"));
+    // Guarded localStorage access — corrupted/missing data (e.g. a user who
+    // cleared storage mid-session, or a previous version writing a bad
+    // shape) no longer throws and blocks checkout.
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("prakumbh_current") || "null");
 
-    if (currentUser) {
-      const users = JSON.parse(localStorage.getItem("prakumbh_users")) || [];
-      const userIndex = users.findIndex((u) => u.id === currentUser.id);
+      if (currentUser) {
+        const users = JSON.parse(localStorage.getItem("prakumbh_users") || "[]");
+        const userIndex = users.findIndex((u) => u.id === currentUser.id);
 
-      if (userIndex !== -1) {
-        const orderData = {
-          id: "ORD" + Date.now(),
-          date: new Date().toISOString(),
-          status: "Processing",
-          items: cartItems.map((item) => ({
-            ...item,
-            image: item.images?.[item.selectedColor || item.defaultColor || "black"]?.back || "",
-          })),
-          total: cartItems.reduce(
-            (total, item) =>
-              total + Number(item.price.replace("₹", "").replace(".00", "")) * (item.quantity || 1),
-            0
-          ),
-          shippingAddress: { name: fullName, phone, address, landmark, city, pincode },
-        };
+        if (userIndex !== -1) {
+          const orderData = {
+            id: "ORD" + Date.now(),
+            date: new Date().toISOString(),
+            status: "Processing",
+            items: cartItems.map((item) => ({
+              ...item,
+              image: item.images?.[item.selectedColor || item.defaultColor || "black"]?.back || "",
+            })),
+            total: cartTotal,
+            shippingAddress: { name: fullName, phone, address, landmark, city, pincode },
+          };
 
-        if (!users[userIndex].orders) users[userIndex].orders = [];
-        users[userIndex].orders.unshift(orderData);
-        localStorage.setItem("prakumbh_users", JSON.stringify(users));
+          if (!users[userIndex].orders) users[userIndex].orders = [];
+          users[userIndex].orders.unshift(orderData);
+          localStorage.setItem("prakumbh_users", JSON.stringify(users));
+        }
       }
+    } catch (err) {
+      console.error("Failed to persist order to localStorage:", err);
     }
 
     const orderPayload = {
@@ -1362,27 +1437,12 @@ function ShopPageContent() {
       product: cartItems
         .map((item) => `${item.name} | Color: ${item.selectedColor} | Size: ${item.selectedSize}`)
         .join(" || "),
-      quantity: cartItems.reduce((t, i) => t + (i.quantity || 1), 0),
-      amount: cartItems.reduce(
-        (t, i) => t + Number(i.price.replace("₹", "").replace(".00", "")) * (i.quantity || 1),
-        0
-      ),
+      quantity: cartQuantity,
+      amount: cartTotal,
     };
 
     const whatsappUrl = `https://wa.me/918766599895?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
-
-    setTimeout(() => {
-      fetch(
-        "https://script.google.com/macros/s/AKfycbxYG8KeTKrt2sLhhrCyJ52m0E5XWUTzZYsYcmObNoDJm5q_ol_jXv_1XIM-lnTo-YsrLg/exec",
-        {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderPayload),
-        }
-      ).catch(console.error);
-    }, 0);
 
     setAddressOpen(false);
     setCartOpen(false);
@@ -1393,7 +1453,25 @@ function ShopPageContent() {
     setLandmark("");
     setCity("");
     setPincode("");
-  }, [isFormValid, cartItems, fullName, phone, address, landmark, city, pincode, setCartOpen, setCartItems]);
+
+    setTimeout(() => {
+      sendOrderToAppsScript(orderPayload);
+    }, 0);
+  }, [
+    isFormValid,
+    cartItems,
+    cartTotal,
+    cartQuantity,
+    fullName,
+    phone,
+    address,
+    landmark,
+    city,
+    pincode,
+    setCartOpen,
+    setCartItems,
+    sendOrderToAppsScript,
+  ]);
 
   return (
     <>
@@ -1407,6 +1485,7 @@ function ShopPageContent() {
         setCartOpen={setCartOpen}
         cartItems={cartItems}
         setCartItems={setCartItems}
+        cartTotal={cartTotal}
         addressOpen={addressOpen}
         setAddressOpen={setAddressOpen}
         customer={customer}
@@ -1521,6 +1600,9 @@ function ShopPageContent() {
 
       {pageLoading && (
         <div
+          role="status"
+          aria-live="polite"
+          aria-label="Loading page"
           style={{
             position: "fixed",
             inset: 0,
@@ -1604,7 +1686,8 @@ function ShopPageContent() {
               </div>
 
               <button
-                onClick={() => setAddressOpen(false)}
+                onClick={closeAddressModal}
+                aria-label="Close delivery address form"
                 style={{
                   width: 40,
                   height: 40,
@@ -1624,6 +1707,7 @@ function ShopPageContent() {
             {/* INPUTS */}
             <input
               placeholder="Full Name"
+              aria-label="Full Name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               style={ADDRESS_INPUT_STYLE}
@@ -1631,6 +1715,7 @@ function ShopPageContent() {
 
             <input
               placeholder="Phone Number"
+              aria-label="Phone Number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               style={ADDRESS_INPUT_STYLE}
@@ -1638,12 +1723,14 @@ function ShopPageContent() {
 
             <input
               placeholder="Complete Address"
+              aria-label="Complete Address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               style={ADDRESS_INPUT_STYLE}
             />
             <input
               placeholder="Landmark"
+              aria-label="Landmark"
               value={landmark}
               onChange={(e) => setLandmark(e.target.value)}
               style={ADDRESS_INPUT_STYLE}
@@ -1660,29 +1747,17 @@ function ShopPageContent() {
             >
               <input
                 placeholder="City"
+                aria-label="City"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                style={{
-                  height: 52,
-                  border: "1px solid #e7e7e7",
-                  borderRadius: 16,
-                  padding: "0 16px",
-                  fontSize: 15,
-                  outline: "none",
-                }}
+                style={CITY_PINCODE_INPUT_STYLE}
               />
               <input
                 placeholder="Pincode"
+                aria-label="Pincode"
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value)}
-                style={{
-                  height: 52,
-                  border: "1px solid #e7e7e7",
-                  borderRadius: 16,
-                  padding: "0 16px",
-                  fontSize: 15,
-                  outline: "none",
-                }}
+                style={CITY_PINCODE_INPUT_STYLE}
               />
             </div>
 
@@ -1701,7 +1776,7 @@ function ShopPageContent() {
               <span style={{ fontSize: 17, color: "#222" }}>Total Amount</span>
 
               <strong style={{ fontSize: 22, fontWeight: 800, color: "#111" }}>
-                ₹{addressModalTotal}
+                ₹{cartTotal}
               </strong>
             </div>
 
