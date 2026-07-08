@@ -1,30 +1,42 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next";
+import { products } from "@/data/products";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
+  const baseUrl = "https://www.prakumbhclothing.com";
+
+  const staticPages: MetadataRoute.Sitemap = [
     {
-      url: 'https://www.prakumbhclothing.com',
+      url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: 'https://www.prakumbhclothing.com/shop',
+      url: `${baseUrl}/shop`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
+      changeFrequency: "weekly",
+      priority: 0.9,
     },
     {
-      url: 'https://www.prakumbhclothing.com/about',
+      url: `${baseUrl}/about`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: 'https://www.prakumbhclothing.com/contact',
+      url: `${baseUrl}/contact`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: "monthly",
       priority: 0.7,
     },
-  ]
+  ];
+
+  const productPages = products.map((product) => ({
+    url: `${baseUrl}/product/${product.id}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...productPages];
 }
