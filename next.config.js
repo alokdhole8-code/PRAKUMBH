@@ -14,20 +14,30 @@ const nextConfig = {
     ],
   },
 
-  async redirects() {
-    return [
-      {
-        source: "/designs",
-        destination: "/shop",
-        permanent: true,
-      },
-      {
-        source: "/products",
-        destination: "/shop",
-        permanent: true,
-      },
-    ];
-  },
+async redirects() {
+  return [
+    {
+      source: "/designs",
+      destination: "/shop",
+      permanent: true,
+    },
+    {
+      source: "/designs/:path*",
+      destination: "/shop",
+      permanent: true,
+    },
+    {
+      source: "/products",
+      destination: "/shop",
+      permanent: true,
+    },
+    {
+      source: "/products/:path*",
+      destination: "/shop",
+      permanent: true,
+    },
+  ];
+},
 };
 
 module.exports = nextConfig;
