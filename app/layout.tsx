@@ -21,7 +21,7 @@ const barlow = Barlow_Condensed({
   weight: ["400", "500", "600", "700"],
 });
 export const metadata: Metadata = {
-  metadataBase: new URL("https://prakumbhclothing.com"),
+  metadataBase: new URL("https://www.prakumbhclothing.com"),
 
   title: {
     default: "Prakumbh | Premium Maharashtrian Streetwear",
@@ -41,15 +41,15 @@ export const metadata: Metadata = {
     "Maharashtra Clothing",
   ],
 
-  alternates: {
-    canonical: "https://prakumbhclothing.com",
-  },
+alternates: {
+  canonical: "https://www.prakumbhclothing.com",
+},
 
   openGraph: {
     title: "Prakumbh",
     description:
       "Premium Maharashtrian Streetwear Brand",
-    url: "https://prakumbhclothing.com",
+    url: "https://www.prakumbhclothing.com",
     siteName: "Prakumbh",
     type: "website",
   },

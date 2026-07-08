@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://prakumbhclothing.com/sitemap.xml",
+    sitemap: "https://www.prakumbhclothing.com/sitemap.xml",
   };
 }
