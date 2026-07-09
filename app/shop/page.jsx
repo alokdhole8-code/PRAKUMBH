@@ -14,6 +14,11 @@ import Navbar, { AnnouncementBar } from "@/components/Navbar";
 // ─── CONSTANTS (module scope — created once, not on every render) ───────────
 const EASE = [0.16, 1, 0.3, 1];
 
+// Warm off-white used in place of flat white for premium surfaces, matching
+// the homepage's navy/gold direction. Kept as a fallback in case LIGHT is
+// not exported with this value from data/products.
+const CREAM = LIGHT || "#F8F4EA";
+
 const MILITARY_CATEGORIES = [
   { id: "all", label: "All", image: "/assets/all.jpeg" },
   { id: "unfiltered", label: "UNTITLED", image: "/assets/unfilteredd.jpeg" },
@@ -68,38 +73,46 @@ const parsePrice = (str) =>
 
 // Style objects that never depend on props/state — hoisted so they are not
 // re-allocated (and don't cause child re-renders when passed down) on every
-// parent render.
+// parent render. Values updated to the premium navy/gold direction; the
+// hoisting pattern itself (defined once, module scope) is unchanged.
 const PREMIUM_INPUT_STYLE = {
   width: "100%",
   height: 56,
-  border: "1px solid #E5E7EB",
+  border: "1px solid rgba(13,27,42,0.14)",
   borderRadius: 14,
   padding: "0 16px",
   fontSize: 15,
   outline: "none",
-  background: "#FAFAFA",
+  background: CREAM,
   color: "#111",
+  fontFamily: "'Barlow Condensed', sans-serif",
 };
 
 const ADDRESS_INPUT_STYLE = {
   width: "100%",
   height: 52,
-  border: "1px solid #e7e7e7",
-  borderRadius: 16,
+  border: "1px solid rgba(13,27,42,0.14)",
+  borderRadius: 14,
   padding: "0 16px",
   marginBottom: 14,
   fontSize: 15,
   outline: "none",
   background: "#fff",
+  fontFamily: "'Barlow Condensed', sans-serif",
+  color: "#111",
+  transition: "border-color 0.2s ease, box-shadow 0.2s ease",
 };
 
 const CITY_PINCODE_INPUT_STYLE = {
   height: 52,
-  border: "1px solid #e7e7e7",
-  borderRadius: 16,
+  border: "1px solid rgba(13,27,42,0.14)",
+  borderRadius: 14,
   padding: "0 16px",
   fontSize: 15,
   outline: "none",
+  fontFamily: "'Barlow Condensed', sans-serif",
+  color: "#111",
+  transition: "border-color 0.2s ease, box-shadow 0.2s ease",
 };
 
 // Global page CSS as a static string — built once at module load instead of
@@ -139,6 +152,25 @@ button { outline: none; }
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* PREMIUM POLISH — additive only, none of the perf hooks above are touched */
+.pk-address-input:focus, .pk-citypin-input:focus {
+  border-color: ${GOLD} !important;
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.18);
+}
+.pk-product-card { transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); }
+.pk-product-card:hover { transform: translateY(-4px); }
+.pk-product-card:hover .pk-product-shadow { box-shadow: 0 18px 40px rgba(13,27,42,0.16); }
+.pk-swatch { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.pk-swatch:hover { transform: scale(1.18); }
+.pk-footer-link { transition: color 0.2s ease; }
+.pk-sort-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+
+/* FILTER BAR — desktop row scrolls horizontally instead of wrapping, so it
+   never breaks awkwardly at tablet / small-laptop widths. Fade hints on
+   either edge signal there's more to scroll. */
+.filterbar-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.filterbar-scroll::-webkit-scrollbar { display: none; }
 `;
 
 // ─── SHARED useIsMobile HOOK ──────────────────────────────────────────────
@@ -185,6 +217,64 @@ function useIsMobile(breakpoint) {
   return isMobile;
 }
 
+// ─── SHARED useBreakpoint HOOK ────────────────────────────────────────────
+// Three-way version of useIsMobile above. A hard mobile/desktop boolean at a
+// single pixel value meant tablets and small laptops (roughly 640–1024px)
+// always fell into whichever bucket the single breakpoint happened to land
+// on, which produced awkward in-between layouts (a 720px hero on an iPad, a
+// squeezed 4-column footer, etc). This adds an explicit "tablet" bucket so
+// components can give that range its own sensible values instead of just
+// inheriting the desktop layout. Same rAF-throttled, only-update-on-change
+// pattern as useIsMobile.
+function useBreakpoint() {
+  const [bp, setBp] = useState("desktop");
+  const rafRef = useRef(null);
+  const lastValue = useRef(null);
+
+  useEffect(() => {
+    const check = () => {
+      const w = window.innerWidth;
+      const next = w < 640 ? "mobile" : w < 1024 ? "tablet" : "desktop";
+      if (next !== lastValue.current) {
+        lastValue.current = next;
+        setBp(next);
+      }
+    };
+
+    check();
+
+    const handleResize = () => {
+      if (rafRef.current) return;
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        check();
+      });
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  return bp; // "mobile" | "tablet" | "desktop"
+}
+
+// ─── SIGNATURE MARK ───────────────────────────────────────────────────────
+// Small saffron "pennant" SVG — the recurring cross-page signature accent
+// (referenced in the redesign brief) used next to eyebrows/labels and in the
+// empty-state. Purely presentational, no props/state, so it's a plain
+// module-level component — never re-allocated, never re-renders for reasons
+// other than its own (nonexistent) inputs changing.
+function PennantMark({ size = 14, color = GOLD }) {
+  return (
+    <svg width={size} height={size * 1.3} viewBox="0 0 14 18" fill="none" aria-hidden="true">
+      <path d="M1 1 L13 1 L13 13 L7 18 L1 13 Z" fill={color} />
+    </svg>
+  );
+}
+
 // ─── CART DRAWER (exact same visuals as homepage) ────────────────────────────
 const CartDrawer = memo(function CartDrawer({
   cartOpen,
@@ -197,7 +287,8 @@ const CartDrawer = memo(function CartDrawer({
   customer,
   setCustomer,
 }) {
-  const isMobile = useIsMobile(640);
+  const bp = useBreakpoint();
+  const isMobile = bp === "mobile";
 
   // Stable handlers — created once, referenced by id/color/size inside so the
   // closures passed into JSX don't need to be redefined with new dependency
@@ -257,6 +348,12 @@ const CartDrawer = memo(function CartDrawer({
   // handlePlaceOrder, all from the same source array. Removing the local
   // useMemo means one calculation instead of three per cartItems change.
 
+  // Drawer width now scales across all three breakpoints instead of just
+  // mobile/desktop: full-width sheet on phones, a slightly narrower panel on
+  // tablets (380px felt tight against a tablet's own chrome/scrollbar), and
+  // the original 380px on desktop.
+  const drawerWidth = isMobile ? "100%" : bp === "tablet" ? 340 : 380;
+
   return (
     <AnimatePresence>
       {cartOpen && (
@@ -271,7 +368,7 @@ const CartDrawer = memo(function CartDrawer({
             style={{
               position: "fixed",
               inset: 0,
-              background: "rgba(0,0,0,0.45)",
+              background: "rgba(13,27,42,0.55)",
               zIndex: 2147483646,
             }}
           />
@@ -285,38 +382,56 @@ const CartDrawer = memo(function CartDrawer({
               position: "fixed",
               top: 0,
               right: 0,
-              width: 380,
+              width: drawerWidth,
               maxWidth: "100%",
               height: "100dvh",
-              background: "#fff",
+              background: CREAM,
               zIndex: 2147483647,
               padding: "18px 24px",
               display: "flex",
               flexDirection: "column",
+              boxShadow: "-12px 0 40px rgba(13,27,42,0.18)",
             }}
           >
-            {/* CLOSE */}
-            <button
-              onClick={closeCart}
-              aria-label="Close cart"
-              style={{
-                border: "none",
-                background: "transparent",
-                fontSize: 38,
-                cursor: "pointer",
-                alignSelf: "flex-end",
-                lineHeight: 1,
-                color: "#222",
-              }}
-            >
-              ×
-            </button>
+            {/* HEADER */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <PennantMark size={12} />
+                <span
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: 11,
+                    letterSpacing: "0.28em",
+                    textTransform: "uppercase",
+                    color: NAVY,
+                    fontWeight: 700,
+                  }}
+                >
+                  Your Bag
+                </span>
+              </div>
+              {/* CLOSE */}
+              <button
+                onClick={closeCart}
+                aria-label="Close cart"
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  fontSize: 32,
+                  cursor: "pointer",
+                  lineHeight: 1,
+                  color: NAVY,
+                }}
+              >
+                ×
+              </button>
+            </div>
 
             {cartItems.length > 0 ? (
               <>
                 <div
                   style={{
-                    marginTop: 28,
+                    marginTop: 22,
                     overflowY: "auto",
                     flex: 1,
                     minHeight: 0,
@@ -331,39 +446,52 @@ const CartDrawer = memo(function CartDrawer({
                         gap: 12,
                         paddingBottom: 24,
                         marginBottom: 24,
-                        borderBottom: "1px solid #ececec",
+                        borderBottom: "1px solid rgba(13,27,42,0.1)",
                       }}
                     >
-                      <Image
-                        src={
-                          item.image ||
-                          item.images?.[item.selectedColor || item.defaultColor || "black"]?.back
-                        }
-                        alt={item.name}
-                        width={110}
-                        height={140}
-                        loading="lazy"
-                        decoding="async"
+                      <div
                         style={{
-                          width: 110,
-                          height: 140,
-                          objectFit: "contain",
-                          background: "transparent",
+                          background: "#fff",
+                          borderRadius: 12,
+                          padding: 6,
+                          boxShadow: "0 2px 8px rgba(13,27,42,0.08)",
+                          flexShrink: 0,
                         }}
-                      />
+                      >
+                        <Image
+                          src={
+                            item.image ||
+                            item.images?.[item.selectedColor || item.defaultColor || "black"]?.back
+                          }
+                          alt={item.name}
+                          width={110}
+                          height={140}
+                          loading="lazy"
+                          decoding="async"
+                          style={{
+                            width: 98,
+                            height: 128,
+                            objectFit: "contain",
+                            background: "transparent",
+                          }}
+                        />
+                      </div>
                       <div style={{ flex: 1 }}>
                         <h4
                           style={{
+                            fontFamily: "'Barlow Condensed', sans-serif",
                             fontSize: 16,
                             lineHeight: 1.4,
-                            fontWeight: 500,
-                            color: "#111",
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.02em",
+                            color: NAVY,
                             marginBottom: 8,
                           }}
                         >
                           {item.name}
                         </h4>
-                        <p style={{ fontSize: 15, color: "#444", marginBottom: 14 }}>
+                        <p style={{ fontSize: 15, color: "#7a7a7a", marginBottom: 14 }}>
                           {item.selectedColor || "Black"} · {item.selectedSize || "M"}
                         </p>
 
@@ -375,7 +503,7 @@ const CartDrawer = memo(function CartDrawer({
                             marginBottom: 12,
                           }}
                         >
-                          <span style={{ fontSize: 16, fontWeight: 700, color: "#111" }}>
+                          <span style={{ fontSize: 16, fontWeight: 700, color: NAVY, fontFamily: "'Oswald', sans-serif" }}>
                             {item.price}
                           </span>
 
@@ -383,7 +511,7 @@ const CartDrawer = memo(function CartDrawer({
                             <span
                               style={{
                                 fontSize: 13,
-                                color: "#aaa",
+                                color: "#b3b3b3",
                                 textDecoration: "line-through",
                               }}
                             >
@@ -403,23 +531,24 @@ const CartDrawer = memo(function CartDrawer({
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              border: "1px solid #e5e5e5",
-                              borderRadius: 6,
+                              border: `1px solid rgba(13,27,42,0.14)`,
+                              borderRadius: 8,
                               overflow: "hidden",
-                              height: 50,
+                              height: 44,
+                              background: "#fff",
                             }}
                           >
                             <button
                               onClick={() => decrementQty(item)}
                               aria-label="Decrease quantity"
                               style={{
-                                width: 48,
+                                width: 40,
                                 height: "100%",
                                 border: "none",
-                                background: "#fff",
-                                fontSize: 22,
+                                background: "transparent",
+                                fontSize: 20,
                                 cursor: "pointer",
-                                color: "#222",
+                                color: NAVY,
                               }}
                             >
                               −
@@ -427,10 +556,11 @@ const CartDrawer = memo(function CartDrawer({
 
                             <div
                               style={{
-                                width: 40,
+                                width: 36,
                                 textAlign: "center",
-                                fontSize: 16,
-                                color: "#111",
+                                fontSize: 15,
+                                color: NAVY,
+                                fontWeight: 600,
                               }}
                             >
                               {item.quantity || 1}
@@ -440,13 +570,13 @@ const CartDrawer = memo(function CartDrawer({
                               onClick={() => incrementQty(item)}
                               aria-label="Increase quantity"
                               style={{
-                                width: 48,
+                                width: 40,
                                 height: "100%",
                                 border: "none",
-                                background: "#fff",
-                                fontSize: 22,
+                                background: "transparent",
+                                fontSize: 20,
                                 cursor: "pointer",
-                                color: "#222",
+                                color: NAVY,
                               }}
                             >
                               +
@@ -466,7 +596,7 @@ const CartDrawer = memo(function CartDrawer({
                               padding: 0,
                             }}
                           >
-                            <span className="material-symbols-outlined" style={{ color: "#222" }}>
+                            <span className="material-symbols-outlined" style={{ color: "#8a8a8a" }}>
                               delete
                             </span>
                           </button>
@@ -477,12 +607,12 @@ const CartDrawer = memo(function CartDrawer({
                 </div>
                 <div
                   style={{
-                    borderTop: "1px solid #ececec",
+                    borderTop: `1px solid rgba(13,27,42,0.12)`,
                     paddingTop: 24,
                     marginTop: 0,
                     position: "sticky",
                     bottom: 0,
-                    background: "#fff",
+                    background: CREAM,
                     zIndex: 50,
                   }}
                 >
@@ -493,16 +623,16 @@ const CartDrawer = memo(function CartDrawer({
                       marginBottom: 10,
                     }}
                   >
-                    <span style={{ fontSize: 16, color: "#444", fontWeight: 500 }}>
+                    <span style={{ fontSize: 15, color: "#666", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                       Estimated total
                     </span>
 
-                    <span style={{ fontSize: 26, fontWeight: 700, color: "#111", lineHeight: 1 }}>
+                    <span style={{ fontSize: 26, fontWeight: 700, color: NAVY, lineHeight: 1, fontFamily: "'Oswald', sans-serif" }}>
                       ₹{cartTotal}.00
                     </span>
                   </div>
 
-                  <p style={{ fontSize: 12, color: "#888", marginBottom: 16, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12, color: "#999", marginBottom: 16, lineHeight: 1.5 }}>
                     Duties and taxes included. Shipping calculated at checkout.
                   </p>
 
@@ -512,18 +642,28 @@ const CartDrawer = memo(function CartDrawer({
                       width: "100%",
                       height: 58,
                       border: "none",
-                      background: "#000",
-                      borderRadius: 18,
-                      fontSize: 18,
+                      background: NAVY,
+                      borderRadius: 14,
+                      fontSize: 17,
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: "#fff",
                       fontWeight: 700,
-                      letterSpacing: "0.1em",
+                      letterSpacing: "0.14em",
                       textTransform: "uppercase",
                       cursor: "pointer",
+                      boxShadow: "0 10px 26px rgba(13,27,42,0.28)",
+                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = "0 14px 32px rgba(13,27,42,0.34)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 10px 26px rgba(13,27,42,0.28)";
                     }}
                   >
-                    BUY NOW →
+                    Buy Now →
                   </button>
                 </div>
               </>
@@ -540,13 +680,15 @@ const CartDrawer = memo(function CartDrawer({
                   marginTop: 60,
                 }}
               >
+                <PennantMark size={22} />
                 <h2
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    fontSize: isMobile ? 31 : 40,
+                    fontSize: isMobile ? 31 : 38,
                     fontWeight: 700,
-                    color: "#14213d",
-                    marginBottom: 18,
+                    color: NAVY,
+                    marginTop: 18,
+                    marginBottom: 14,
                     lineHeight: 1,
                     letterSpacing: "-0.02em",
                   }}
@@ -558,13 +700,13 @@ const CartDrawer = memo(function CartDrawer({
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     fontSize: 16,
-                    color: "#222",
+                    color: "#555",
                     marginBottom: 34,
                     lineHeight: 1.5,
                   }}
                 >
                   Have an account?{" "}
-                  <span style={{ textDecoration: "underline", cursor: "pointer" }}>Log in</span>{" "}
+                  <span style={{ textDecoration: "underline", cursor: "pointer", color: NAVY }}>Log in</span>{" "}
                   to check out faster.
                 </p>
 
@@ -572,17 +714,18 @@ const CartDrawer = memo(function CartDrawer({
                   onClick={closeCart}
                   style={{
                     border: "none",
-                    background: "#000",
+                    background: NAVY,
                     color: "#fff",
                     height: 50,
                     minWidth: 195,
                     padding: "0 34px",
-                    borderRadius: 14,
+                    borderRadius: 12,
                     cursor: "pointer",
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    fontSize: 18,
+                    fontSize: 17,
                     fontWeight: 700,
-                    letterSpacing: "0.01em",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
                     transition: "transform 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
@@ -608,19 +751,25 @@ const CartDrawer = memo(function CartDrawer({
 // setActiveCategory, which it never used in its own markup. Previously this
 // component re-rendered every time the user picked a different category,
 // even though its visual output never changes because of that.
+//
+// Height now has an explicit tablet value instead of jumping straight from
+// 220px (mobile) to 720px (desktop) — on an iPad-sized viewport 720px was
+// disproportionately tall relative to the viewport, pushing all real
+// content (categories, filters, products) far below the fold.
 const ShopHero = memo(function ShopHero() {
-  const isMobile = useIsMobile(768);
+  const bp = useBreakpoint();
+  const height = bp === "mobile" ? 220 : bp === "tablet" ? 400 : 720;
 
   return (
     <section
       style={{
         position: "relative",
-        height: isMobile ? "220px" : "720px",
+        height,
         overflow: "hidden",
         background: "#060d18",
       }}
     >
-      {/* BG IMAGE */}
+      {/* BG IMAGE — exact same height/background logic per breakpoint */}
       <div
         style={{
           position: "absolute",
@@ -630,9 +779,22 @@ const ShopHero = memo(function ShopHero() {
           backgroundColor: "#060d18",
           filter: "brightness(0.92)",
           backgroundSize: "cover",
-          backgroundPosition: isMobile ? "center center" : "center 35%",
+          backgroundPosition: bp === "mobile" ? "center center" : "center 35%",
         }}
       />
+
+      {/* GRADIENT OVERLAY — additive, purely presentational */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(180deg, rgba(6,13,24,0.25) 0%, rgba(6,13,24,0.15) 40%, rgba(6,13,24,0.75) 100%)",
+        }}
+      />
+
+      {/* COPY OVERLAY */}
+ 
     </section>
   );
 });
@@ -655,12 +817,12 @@ const CategorySection = memo(function CategorySection({ activeCategory, setActiv
   );
 
   return (
-    <section style={{ background: "#fff", padding: "18px clamp(16px,4vw,48px) 2px", overflowX: "auto" }}>
+    <section style={{ background: "#fff", padding: "28px clamp(16px,4vw,48px) 6px", overflowX: "auto" }}>
       <div
         className="category-scroll"
         style={{
           display: "flex",
-          gap: 1,
+          gap: 6,
           overflowX: "auto",
           overflowY: "hidden",
           paddingBottom: 8,
@@ -681,36 +843,34 @@ const CategorySection = memo(function CategorySection({ activeCategory, setActiv
               background: "none",
               border: "none",
               cursor: "pointer",
-              minWidth: 88,
+              minWidth: 92,
               flexShrink: 0,
+              padding: "6px 4px",
             }}
           >
-            <div
+            {/* whileHover/whileTap replace the previous manual inline
+                onMouseEnter/onMouseLeave DOM mutation — same equivalent
+                behavior (scale + background shift on non-active circles),
+                driven declaratively instead. */}
+            <motion.div
+              whileHover={activeCategory === cat.id ? {} : { scale: 1.07 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ duration: 0.25, ease: EASE }}
               style={{
-                width: 68,
-                height: 68,
+                width: 72,
+                height: 72,
                 borderRadius: "50%",
-                background: activeCategory === cat.id ? NAVY : "#f4f3f0",
-                border: `2px solid ${activeCategory === cat.id ? NAVY : "transparent"}`,
+                background: activeCategory === cat.id ? NAVY : CREAM,
+                border: `2px solid ${activeCategory === cat.id ? GOLD : "transparent"}`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 26,
-                transition: "all 0.25s ease",
-                boxShadow: activeCategory === cat.id ? `0 6px 20px rgba(13,27,42,0.25)` : "none",
+                boxShadow:
+                  activeCategory === cat.id
+                    ? `0 8px 24px rgba(13,27,42,0.32)`
+                    : "0 2px 8px rgba(13,27,42,0.06)",
                 transform: activeCategory === cat.id ? "scale(1.08)" : "scale(1)",
-              }}
-              onMouseEnter={(e) => {
-                if (activeCategory !== cat.id) {
-                  e.currentTarget.style.background = "#ebebeb";
-                  e.currentTarget.style.transform = "scale(1.06)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeCategory !== cat.id) {
-                  e.currentTarget.style.background = "#f4f3f0";
-                  e.currentTarget.style.transform = "scale(1)";
-                }
               }}
             >
               <div
@@ -726,13 +886,13 @@ const CategorySection = memo(function CategorySection({ activeCategory, setActiv
                   src={cat.image}
                   alt={cat.label}
                   fill
-                  sizes="68px"
+                  sizes="72px"
                   loading="lazy"
                   decoding="async"
                   style={{ objectFit: "cover" }}
                 />
               </div>
-            </div>
+            </motion.div>
             <span
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
@@ -741,10 +901,10 @@ const CategorySection = memo(function CategorySection({ activeCategory, setActiv
                 fontWeight: 700,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: activeCategory === cat.id ? NAVY : "#666",
+                color: activeCategory === cat.id ? NAVY : "#888",
                 textAlign: "center",
                 lineHeight: 1.2,
-                maxWidth: 72,
+                maxWidth: 76,
                 transition: "color 0.2s",
               }}
             >
@@ -758,257 +918,510 @@ const CategorySection = memo(function CategorySection({ activeCategory, setActiv
 });
 
 // ─── FILTER BAR ───────────────────────────────────────────────────────────
-const FilterBar = memo(function FilterBar({ filters, setFilters, sort, setSort, totalCount, filteredCount }) {
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-  const isMobile = useIsMobile(768);
-  const ref = useRef(null);
+// const FilterBar = memo(function FilterBar({ filters, setFilters, sort, setSort, totalCount, filteredCount }) {
+//   const [openDropdown, setOpenDropdown] = useState(null);
+//   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+//   const isMobile = useIsMobile(768);
+//   const ref = useRef(null);
 
-  // `useRouter()` was called here previously but `router` was never actually
-  // referenced anywhere in this component — an unused hook subscription that
-  // could cause pointless re-renders on route/query changes. Removed.
+//   // `useRouter()` was called here previously but `router` was never actually
+//   // referenced anywhere in this component — an unused hook subscription that
+//   // could cause pointless re-renders on route/query changes. Removed.
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpenDropdown(null);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+//   // Close dropdown on outside click
+//   useEffect(() => {
+//     const handler = (e) => {
+//       if (ref.current && !ref.current.contains(e.target)) setOpenDropdown(null);
+//     };
+//     document.addEventListener("mousedown", handler);
+//     return () => document.removeEventListener("mousedown", handler);
+//   }, []);
 
-  const toggleSize = useCallback(
-    (sz) => {
-      setFilters((f) => ({
-        ...f,
-        sizes: f.sizes.includes(sz) ? f.sizes.filter((s) => s !== sz) : [...f.sizes, sz],
-      }));
-    },
-    [setFilters]
-  );
+//   const toggleSize = useCallback(
+//     (sz) => {
+//       setFilters((f) => ({
+//         ...f,
+//         sizes: f.sizes.includes(sz) ? f.sizes.filter((s) => s !== sz) : [...f.sizes, sz],
+//       }));
+//     },
+//     [setFilters]
+//   );
 
-  const togglePrice = useCallback(
-    (range) => {
-      setFilters((f) => ({
-        ...f,
-        priceRange: f.priceRange === range.label ? null : range.label,
-      }));
-    },
-    [setFilters]
-  );
+//   const togglePrice = useCallback(
+//     (range) => {
+//       setFilters((f) => ({
+//         ...f,
+//         priceRange: f.priceRange === range.label ? null : range.label,
+//       }));
+//     },
+//     [setFilters]
+//   );
 
-  const clearAll = useCallback(
-    () => setFilters({ sizes: [], priceRange: null, inStock: false }),
-    [setFilters]
-  );
+//   const clearAll = useCallback(
+//     () => setFilters({ sizes: [], priceRange: null, inStock: false }),
+//     [setFilters]
+//   );
 
-  const closeMobileFilter = useCallback(() => setMobileFilterOpen(false), []);
+//   const closeMobileFilter = useCallback(() => setMobileFilterOpen(false), []);
+//   const openMobileFilter = useCallback(() => setMobileFilterOpen(true), []);
 
-  const hasFilters = filters.sizes.length > 0 || filters.priceRange || filters.inStock;
+//   const hasFilters = filters.sizes.length > 0 || filters.priceRange || filters.inStock;
 
-  return (
-    <div
-      ref={ref}
-      style={{
-        position: "sticky",
-        top: 56,
-        zIndex: 200,
-        background: "#fff",
-        borderBottom: `1px solid ${BORDER}`,
-        willChange: "transform",
-        transform: "translateZ(0)",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1700,
-          margin: "0 auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          flexWrap: "wrap",
-        }}
-      >
-        {isMobile && (
-          <>
-            <AnimatePresence>
-              {mobileFilterOpen && (
-                <>
-                  <div
-                    onClick={closeMobileFilter}
-                    style={{
-                      position: "fixed",
-                      inset: 0,
-                      background: "rgba(0,0,0,0.45)",
-                      zIndex: 999999,
-                    }}
-                  />
+//   // Shared chip styling helper — presentational only, no new state.
+//   const chipStyle = (active) => ({
+//     height: 38,
+//     padding: "0 16px",
+//     borderRadius: 999,
+//     fontSize: 13,
+//     fontFamily: "'Barlow Condensed', sans-serif",
+//     fontWeight: 600,
+//     letterSpacing: "0.03em",
+//     cursor: "pointer",
+//     border: active ? `1.5px solid ${NAVY}` : "1px solid rgba(13,27,42,0.16)",
+//     background: active ? NAVY : "#fff",
+//     color: active ? "#fff" : "#333",
+//     transition: "all 0.18s ease",
+//     whiteSpace: "nowrap",
+//   });
 
-                  <div
-                    style={{
-                      position: "fixed",
-                      top: 0,
-                      left: 0,
-                      width: "92%",
-                      maxWidth: 360,
-                      height: "100dvh",
-                      background: "#fff",
-                      zIndex: 9999999,
-                      overflowY: "auto",
-                      padding: "20px 18px 120px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: 28,
-                      }}
-                    >
-                      <h2 style={{ fontSize: 24, color: NAVY, fontWeight: 700 }}>Filter</h2>
+//   return (
+//     <div
+//       ref={ref}
+//       style={{
+//         position: "sticky",
+//         top: 56,
+//         zIndex: 200,
+//         background: "#fff",
+//         borderBottom: `1px solid ${BORDER}`,
+//         willChange: "transform",
+//         transform: "translateZ(0)",
+//       }}
+//     >
+//       <div
+//         style={{
+//           maxWidth: 1700,
+//           margin: "0 auto",
+//           display: "flex",
+//           alignItems: "center",
+//           gap: 10,
+//           flexWrap: "wrap",
+//           padding: isMobile ? "10px clamp(16px,4vw,48px)" : "16px clamp(16px,4vw,48px)",
+//         }}
+//       >
+//         {isMobile ? (
+//           <>
+//             {/* MOBILE TRIGGER — opens the exact same drawer as before */}
+//             <button
+//               onClick={openMobileFilter}
+//               aria-label="Open filters"
+//               style={{
+//                 display: "flex",
+//                 alignItems: "center",
+//                 gap: 8,
+//                 height: 38,
+//                 padding: "0 16px",
+//                 borderRadius: 999,
+//                 border: `1px solid rgba(13,27,42,0.16)`,
+//                 background: hasFilters ? NAVY : "#fff",
+//                 color: hasFilters ? "#fff" : NAVY,
+//                 fontSize: 13,
+//                 fontFamily: "'Barlow Condensed', sans-serif",
+//                 fontWeight: 700,
+//                 letterSpacing: "0.06em",
+//                 textTransform: "uppercase",
+//                 cursor: "pointer",
+//               }}
+//             >
+//               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+//                 tune
+//               </span>
+//               Filter{hasFilters ? ` (${filters.sizes.length + (filters.priceRange ? 1 : 0) + (filters.inStock ? 1 : 0)})` : ""}
+//             </button>
 
-                      <button
-                        onClick={closeMobileFilter}
-                        aria-label="Close filters"
-                        style={{
-                          border: "none",
-                          background: "transparent",
-                          fontSize: 34,
-                          cursor: "pointer",
-                          color: "#222",
-                        }}
-                      >
-                        ×
-                      </button>
-                    </div>
+//             <AnimatePresence>
+//               {mobileFilterOpen && (
+//                 <>
+//                   <div
+//                     onClick={closeMobileFilter}
+//                     style={{
+//                       position: "fixed",
+//                       inset: 0,
+//                       background: "rgba(13,27,42,0.55)",
+//                       zIndex: 999999,
+//                     }}
+//                   />
 
-                    {/* AVAILABILITY */}
-                    <div
-                      style={{
-                        paddingBottom: 24,
-                        borderBottom: "1px solid #ececec",
-                        marginBottom: 24,
-                      }}
-                    >
-                      <h3 style={{ fontSize: 18, marginBottom: 18, color: "#444" }}>Availability</h3>
+//                   <div
+//                     style={{
+//                       position: "fixed",
+//                       top: 0,
+//                       left: 0,
+//                       width: "92%",
+//                       maxWidth: 360,
+//                       height: "100dvh",
+//                       background: "#fff",
+//                       zIndex: 9999999,
+//                       overflowY: "auto",
+//                       padding: "20px 18px 120px",
+//                     }}
+//                   >
+//                     <div
+//                       style={{
+//                         display: "flex",
+//                         alignItems: "center",
+//                         justifyContent: "space-between",
+//                         marginBottom: 28,
+//                       }}
+//                     >
+//                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+//                         <PennantMark size={14} />
+//                         <h2 style={{ fontSize: 22, color: NAVY, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+//                           Filter
+//                         </h2>
+//                       </div>
 
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 12,
-                          marginBottom: 16,
-                          fontSize: 16,
-                          color: "#666",
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={filters.inStock}
-                          onChange={(e) =>
-                            setFilters((f) => ({ ...f, inStock: e.target.checked }))
-                          }
-                          style={{ width: 22, height: 22, accentColor: NAVY }}
-                        />
-                        In stock
-                      </label>
-                    </div>
+//                       <button
+//                         onClick={closeMobileFilter}
+//                         aria-label="Close filters"
+//                         style={{
+//                           border: "none",
+//                           background: "transparent",
+//                           fontSize: 34,
+//                           cursor: "pointer",
+//                           color: NAVY,
+//                         }}
+//                       >
+//                         ×
+//                       </button>
+//                     </div>
 
-                    {/* SIZE */}
-                    <div
-                      style={{
-                        paddingBottom: 24,
-                        borderBottom: "1px solid #ececec",
-                        marginBottom: 24,
-                      }}
-                    >
-                      <h3 style={{ fontSize: 18, marginBottom: 18, color: "#444" }}>Size</h3>
+//                     {/* AVAILABILITY */}
+//                     <div
+//                       style={{
+//                         paddingBottom: 24,
+//                         borderBottom: "1px solid rgba(13,27,42,0.1)",
+//                         marginBottom: 24,
+//                       }}
+//                     >
+//                       <h3 style={{ fontSize: 12, marginBottom: 18, color: "#888", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>Availability</h3>
 
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(4,1fr)",
-                          gap: 12,
-                        }}
-                      >
-                        {SIZES.map((sz) => (
-                          <button
-                            key={sz}
-                            onClick={() => toggleSize(sz)}
-                            style={{
-                              height: 44,
-                              border: filters.sizes.includes(sz)
-                                ? `1.5px solid ${NAVY}`
-                                : "1px solid #ddd",
-                              background: filters.sizes.includes(sz) ? NAVY : "#fff",
-                              color: filters.sizes.includes(sz) ? "#fff" : "#333",
-                              borderRadius: 14,
-                              fontSize: 15,
-                              cursor: "pointer",
-                            }}
-                          >
-                            {sz}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+//                       <label
+//                         style={{
+//                           display: "flex",
+//                           alignItems: "center",
+//                           gap: 12,
+//                           marginBottom: 16,
+//                           fontSize: 16,
+//                           color: "#444",
+//                         }}
+//                       >
+//                         <input
+//                           type="checkbox"
+//                           checked={filters.inStock}
+//                           onChange={(e) =>
+//                             setFilters((f) => ({ ...f, inStock: e.target.checked }))
+//                           }
+//                           style={{ width: 22, height: 22, accentColor: NAVY }}
+//                         />
+//                         In stock
+//                       </label>
+//                     </div>
 
-                    {/* SORT */}
-                    <div style={{ marginBottom: 28 }}>
-                      <h3 style={{ fontSize: 18, marginBottom: 18, color: "#444" }}>Sort</h3>
+//                     {/* SIZE */}
+//                     <div
+//                       style={{
+//                         paddingBottom: 24,
+//                         borderBottom: "1px solid rgba(13,27,42,0.1)",
+//                         marginBottom: 24,
+//                       }}
+//                     >
+//                       <h3 style={{ fontSize: 12, marginBottom: 18, color: "#888", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>Size</h3>
 
-                      <select
-                        value={sort}
-                        onChange={(e) => setSort(e.target.value)}
-                        style={{
-                          width: "100%",
-                          height: 52,
-                          border: "1px solid #ddd",
-                          borderRadius: 12,
-                          padding: "0 14px",
-                          fontSize: 15,
-                          background: "#fff",
-                        }}
-                      >
-                        {SORT_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+//                       <div
+//                         style={{
+//                           display: "grid",
+//                           gridTemplateColumns: "repeat(4,1fr)",
+//                           gap: 12,
+//                         }}
+//                       >
+//                         {SIZES.map((sz) => (
+//                           <button
+//                             key={sz}
+//                             onClick={() => toggleSize(sz)}
+//                             style={{
+//                               height: 44,
+//                               border: filters.sizes.includes(sz)
+//                                 ? `1.5px solid ${NAVY}`
+//                                 : "1px solid rgba(13,27,42,0.16)",
+//                               background: filters.sizes.includes(sz) ? NAVY : "#fff",
+//                               color: filters.sizes.includes(sz) ? "#fff" : "#333",
+//                               borderRadius: 12,
+//                               fontSize: 15,
+//                               cursor: "pointer",
+//                               fontFamily: "'Barlow Condensed', sans-serif",
+//                               fontWeight: 600,
+//                             }}
+//                           >
+//                             {sz}
+//                           </button>
+//                         ))}
+//                       </div>
+//                     </div>
 
-                    {/* BUTTON */}
-                    <button
-                      onClick={closeMobileFilter}
-                      style={{
-                        position: "fixed",
-                        left: 30,
-                        right: 30,
-                        bottom: 22,
-                        height: 54,
-                        borderRadius: 18,
-                        border: "none",
-                        background: NAVY,
-                        color: "#fff",
-                        fontSize: 17,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
-                      See {filteredCount} items
-                    </button>
-                  </div>
-                </>
-              )}
-            </AnimatePresence>
-          </>
-        )}
-      </div>
-    </div>
-  );
-});
+//                     {/* PRICE — now wired for mobile too, reusing togglePrice */}
+//                     <div
+//                       style={{
+//                         paddingBottom: 24,
+//                         borderBottom: "1px solid rgba(13,27,42,0.1)",
+//                         marginBottom: 24,
+//                       }}
+//                     >
+//                       <h3 style={{ fontSize: 12, marginBottom: 18, color: "#888", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>Price</h3>
+//                       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+//                         {PRICE_RANGES.map((range) => (
+//                           <button
+//                             key={range.label}
+//                             onClick={() => togglePrice(range)}
+//                             style={{
+//                               ...chipStyle(filters.priceRange === range.label),
+//                               width: "100%",
+//                               textAlign: "left",
+//                               height: 44,
+//                             }}
+//                           >
+//                             {range.label}
+//                           </button>
+//                         ))}
+//                       </div>
+//                     </div>
+
+//                     {/* SORT */}
+//                     <div style={{ marginBottom: 28 }}>
+//                       <h3 style={{ fontSize: 12, marginBottom: 18, color: "#888", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>Sort</h3>
+
+//                       <select
+//                         value={sort}
+//                         onChange={(e) => setSort(e.target.value)}
+//                         style={{
+//                           width: "100%",
+//                           height: 52,
+//                           border: "1px solid rgba(13,27,42,0.16)",
+//                           borderRadius: 12,
+//                           padding: "0 14px",
+//                           fontSize: 15,
+//                           background: "#fff",
+//                           fontFamily: "'Barlow Condensed', sans-serif",
+//                         }}
+//                       >
+//                         {SORT_OPTIONS.map((o) => (
+//                           <option key={o.value} value={o.value}>
+//                             {o.label}
+//                           </option>
+//                         ))}
+//                       </select>
+//                     </div>
+
+//                     {hasFilters && (
+//                       <button
+//                         onClick={clearAll}
+//                         style={{
+//                           border: "none",
+//                           background: "transparent",
+//                           color: "#888",
+//                           fontSize: 13,
+//                           textDecoration: "underline",
+//                           cursor: "pointer",
+//                           marginBottom: 12,
+//                           fontFamily: "'Barlow Condensed', sans-serif",
+//                         }}
+//                       >
+//                         Clear all
+//                       </button>
+//                     )}
+
+//                     {/* BUTTON */}
+//                     <button
+//                       onClick={closeMobileFilter}
+//                       style={{
+//                         position: "fixed",
+//                         left: 30,
+//                         right: 30,
+//                         bottom: 22,
+//                         height: 54,
+//                         borderRadius: 14,
+//                         border: "none",
+//                         background: NAVY,
+//                         color: "#fff",
+//                         fontSize: 16,
+//                         fontWeight: 700,
+//                         cursor: "pointer",
+//                         letterSpacing: "0.06em",
+//                         textTransform: "uppercase",
+//                         boxShadow: "0 10px 26px rgba(13,27,42,0.28)",
+//                       }}
+//                     >
+//                       See {filteredCount} items
+//                     </button>
+//                   </div>
+//                 </>
+//               )}
+//             </AnimatePresence>
+//           </>
+//         ) : (
+//           // ── DESKTOP FILTER ROW ──────────────────────────────────────────
+//           // Previously used flexWrap: "wrap", which meant at intermediate
+//           // widths (tablets, small laptops, or a browser window resized
+//           // between 768–1300px) the chips would break into an unpredictable,
+//           // uneven second/third row. Now the row scrolls horizontally
+//           // instead of wrapping — same pattern as the category circles above
+//           // — so it looks intentional and consistent at every width instead
+//           // of "breaking" at certain sizes. Nothing about the filter logic
+//           // changed, only the container's overflow behavior.
+//           <div style={{ position: "relative", width: "100%", minWidth: 0 }}>
+//             <div
+//               className="filterbar-scroll"
+//               style={{
+//                 display: "flex",
+//                 alignItems: "center",
+//                 gap: 22,
+//                 flexWrap: "nowrap",
+//                 overflowX: "auto",
+//                 overflowY: "hidden",
+//                 width: "100%",
+//                 scrollBehavior: "smooth",
+//                 WebkitOverflowScrolling: "touch",
+//               }}
+//             >
+//               {/* SORT DROPDOWN */}
+//               <div style={{ position: "relative", flexShrink: 0 }}>
+//                 <select
+//                   value={sort}
+//                   onChange={(e) => setSort(e.target.value)}
+//                   className="pk-sort-select"
+//                   aria-label="Sort products"
+//                   style={{
+//                     height: 40,
+//                     padding: "0 34px 0 16px",
+//                     borderRadius: 10,
+//                     border: `1px solid rgba(13,27,42,0.16)`,
+//                     background: "#fff",
+//                     fontSize: 13,
+//                     fontWeight: 600,
+//                     color: NAVY,
+//                     fontFamily: "'Barlow Condensed', sans-serif",
+//                     cursor: "pointer",
+//                   }}
+//                 >
+//                   {SORT_OPTIONS.map((o) => (
+//                     <option key={o.value} value={o.value}>
+//                       {o.label}
+//                     </option>
+//                   ))}
+//                 </select>
+//                 <span
+//                   className="material-symbols-outlined"
+//                   style={{
+//                     position: "absolute",
+//                     right: 10,
+//                     top: "50%",
+//                     transform: "translateY(-50%)",
+//                     fontSize: 18,
+//                     color: NAVY,
+//                     pointerEvents: "none",
+//                   }}
+//                 >
+//                   expand_more
+//                 </span>
+//               </div>
+
+//               <div style={{ width: 1, height: 24, background: "rgba(13,27,42,0.12)", flexShrink: 0 }} />
+
+//               {/* SIZE CHIPS */}
+//               <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+//                 <span style={{ fontSize: 11, color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginRight: 2, flexShrink: 0 }}>
+//                   Size
+//                 </span>
+//                 {SIZES.map((sz) => (
+//                   <button
+//                     key={sz}
+//                     onClick={() => toggleSize(sz)}
+//                     style={{ ...chipStyle(filters.sizes.includes(sz)), height: 34, padding: "0 13px", fontSize: 12, flexShrink: 0 }}
+//                   >
+//                     {sz}
+//                   </button>
+//                 ))}
+//               </div>
+
+//               <div style={{ width: 1, height: 24, background: "rgba(13,27,42,0.12)", flexShrink: 0 }} />
+
+//               {/* PRICE CHIPS */}
+//               <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+//                 <span style={{ fontSize: 11, color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginRight: 2, flexShrink: 0 }}>
+//                   Price
+//                 </span>
+//                 {PRICE_RANGES.map((range) => (
+//                   <button
+//                     key={range.label}
+//                     onClick={() => togglePrice(range)}
+//                     style={{ ...chipStyle(filters.priceRange === range.label), height: 34, fontSize: 12, flexShrink: 0 }}
+//                   >
+//                     {range.label}
+//                   </button>
+//                 ))}
+//               </div>
+
+//               <div style={{ width: 1, height: 24, background: "rgba(13,27,42,0.12)", flexShrink: 0 }} />
+
+//               {/* IN STOCK */}
+//               <button
+//                 onClick={() => setFilters((f) => ({ ...f, inStock: !f.inStock }))}
+//                 style={{ ...chipStyle(filters.inStock), height: 34, fontSize: 12, flexShrink: 0 }}
+//               >
+//                 In stock only
+//               </button>
+
+//               {hasFilters && (
+//                 <button
+//                   onClick={clearAll}
+//                   style={{
+//                     flexShrink: 0,
+//                     border: "none",
+//                     background: "transparent",
+//                     color: "#888",
+//                     fontSize: 12,
+//                     textDecoration: "underline",
+//                     cursor: "pointer",
+//                     fontFamily: "'Barlow Condensed', sans-serif",
+//                     fontWeight: 600,
+//                     letterSpacing: "0.03em",
+//                     whiteSpace: "nowrap",
+//                   }}
+//                 >
+//                   Clear all
+//                 </button>
+//               )}
+//             </div>
+
+//             {/* Right-edge fade — subtle hint that the row scrolls further.
+//                 Pointer-events none so it never blocks clicks on the last chip. */}
+//             <div
+//               aria-hidden="true"
+//               style={{
+//                 position: "absolute",
+//                 right: 0,
+//                 top: 0,
+//                 bottom: 0,
+//                 width: 36,
+//                 background: "linear-gradient(90deg, rgba(255,255,255,0), #fff)",
+//                 pointerEvents: "none",
+//               }}
+//             />
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// });
 
 // ─── PRODUCT CARD ─────────────────────────────────────────────────────────
 const ShopProductCard = memo(
@@ -1041,6 +1454,7 @@ const ShopProductCard = memo(
 
     return (
       <div
+        className="pk-product-card"
         onClick={handleCardClick}
         onMouseEnter={handlePrefetch}
         onTouchStart={handlePrefetch}
@@ -1048,15 +1462,39 @@ const ShopProductCard = memo(
       >
         {/* IMAGE WRAP */}
         <div
+          className="pk-product-shadow"
           style={{
             position: "relative",
             overflow: "hidden",
             background: "#fff",
-            borderRadius: 12,
-            boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+            borderRadius: 14,
+            boxShadow: "0 1px 4px rgba(13,27,42,0.06)",
             marginBottom: 14,
+            transition: "box-shadow 0.35s ease",
           }}
         >
+          {/* DISCOUNT BADGE — value already computed above, simply rendered now */}
+          {discount > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: 10,
+                left: 10,
+                zIndex: 2,
+                background: NAVY,
+                color: GOLD,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                padding: "4px 9px",
+                borderRadius: 999,
+                fontFamily: "'Barlow Condensed', sans-serif",
+              }}
+            >
+              −{discount}%
+            </div>
+          )}
+
           {/* IMAGE */}
           <Image
             src={imageSrc}
@@ -1087,7 +1525,7 @@ const ShopProductCard = memo(
           >
             {product.name}
           </h3>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <span
               style={{
                 fontSize: "clamp(14px,1.8vw,18px)",
@@ -1105,10 +1543,11 @@ const ShopProductCard = memo(
               </span>
             )}
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
+          <div style={{ display: "flex", gap: 7 }}>
             {Object.keys(product.images || {}).map((colorKey, i) => (
               <div
                 key={i}
+                className="pk-swatch"
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedColor(colorKey);
@@ -1123,8 +1562,8 @@ const ShopProductCard = memo(
                   }
                 }}
                 style={{
-                  width: 13,
-                  height: 13,
+                  width: 14,
+                  height: 14,
                   borderRadius: "50%",
                   background:
                     colorKey === "black"
@@ -1138,12 +1577,12 @@ const ShopProductCard = memo(
                       : colorKey === "grey"
                       ? "#6B7280"
                       : "#F5F5F5",
-                  border:
+                  boxShadow:
                     selectedColor === colorKey
-                      ? "2px solid #0A2A66"
+                      ? `0 0 0 2px #fff, 0 0 0 3.5px ${NAVY}`
                       : colorKey === "white"
-                      ? "1px solid #999"
-                      : "1px solid #dcdcdc",
+                      ? "0 0 0 1px #ccc inset"
+                      : "0 0 0 1px #dcdcdc inset",
                   cursor: "pointer",
                 }}
               />
@@ -1172,15 +1611,18 @@ const ShopProductCard = memo(
 const ProductGrid = memo(function ProductGrid({ products: list, setCartOpen, setCartItems, setPageLoading }) {
   if (list.length === 0) {
     return (
-      <div style={{ padding: "80px 0", textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🎖️</div>
+      <div style={{ padding: "90px 0", textAlign: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+          <PennantMark size={34} />
+        </div>
         <h3
           style={{
             fontFamily: "'Oswald', sans-serif",
-            fontSize: 36,
+            fontSize: 34,
             color: NAVY,
-            marginBottom: 8,
+            marginBottom: 10,
             letterSpacing: "0.06em",
+            textTransform: "uppercase",
           }}
         >
           No products found
@@ -1189,8 +1631,8 @@ const ProductGrid = memo(function ProductGrid({ products: list, setCartOpen, set
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 15,
-            color: "#888",
-            letterSpacing: "0.04em",
+            color: "#999",
+            letterSpacing: "0.02em",
           }}
         >
           Try adjusting your filters or browse all categories.
@@ -1224,7 +1666,8 @@ const ProductGrid = memo(function ProductGrid({ products: list, setCartOpen, set
 // ─── ROOT PAGE ────────────────────────────────────────────────────────────
 function ShopPageContent() {
   const [addressOpen, setAddressOpen] = useState(false);
-  const isMobile = useIsMobile(768);
+  const bp = useBreakpoint();
+  const isMobile = bp === "mobile";
 
   const { cartOpen, setCartOpen, cartItems, setCartItems } = useCart();
 
@@ -1504,7 +1947,7 @@ function ShopPageContent() {
           setPageLoading={setPageLoading}
         />
 
-        {/* 3. FILTER BAR */}
+        {/* 3. FILTER BAR
         <FilterBar
           filters={filters}
           setFilters={setFilters}
@@ -1512,13 +1955,20 @@ function ShopPageContent() {
           setSort={setSort}
           totalCount={products.length}
           filteredCount={displayProducts.length}
-        />
+        /> */}
 
         {/* 4. PRODUCTS + BANNER */}
-        <div style={{ maxWidth: 1700, margin: "0 auto", padding: "20px clamp(16px,4vw,48px) 80px" }}>
+        <div style={{ maxWidth: 1700, margin: "0 auto", padding: "28px clamp(16px,4vw,48px) 80px" }}>
           {/* SECTION HEADING */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 36 }}>
-            <div style={{ width: 36, height: 2, background: GOLD }} />
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.5, ease: EASE }}
+            style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 36 }}
+          >
+            <PennantMark size={12} />
+            <div style={{ width: 30, height: 2, background: GOLD }} />
             <div
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
@@ -1537,7 +1987,7 @@ function ShopPageContent() {
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: "0.12em", color: "#bbb" }}>
               {displayProducts.length} items
             </div>
-          </div>
+          </motion.div>
 
           {/* GRID */}
           <ProductGrid
@@ -1548,8 +1998,12 @@ function ShopPageContent() {
           />
         </div>
 
-        {/* FOOTER STRIP — exact match to homepage */}
-        <div
+        {/* FOOTER — column count now scales across all three breakpoints:
+            1 column on mobile, 2 on tablet (previously tablet fell into the
+            desktop 4-column layout and squeezed every column too narrow to
+            read comfortably), 4 on desktop. */}
+        <footer style={{ background: NAVY }}>
+          <div
           style={{
             background: NAVY,
             padding: "28px 40px",
@@ -1560,9 +2014,17 @@ function ShopPageContent() {
             gap: 16,
           }}
         >
-          <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 22, letterSpacing: "0.3em", color: "#fff" }}>
+          <div
+            style={{
+              fontFamily: "'Oswald', sans-serif",
+              fontSize: 22,
+              letterSpacing: "0.3em",
+              color: "#fff",
+            }}
+          >
             PRAKUMBH
           </div>
+
           <div
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
@@ -1572,30 +2034,33 @@ function ShopPageContent() {
               textTransform: "uppercase",
             }}
           >
-            © 2025 Prakumbh. India&apos;s Premium Streetwear.
+            © 2025 Prakumbh. India's Premium Streetwear.
           </div>
+
           <div style={{ display: "flex", gap: 24 }}>
-            {["Instagram", "Twitter", "YouTube"].map((s) => (
-              <a
-                key={s}
-                href="#"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: 12,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.55)",
-                  textDecoration: "none",
-                  transition: "color 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = GOLD)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
-              >
-                {s}
-              </a>
-            ))}
+            <a
+              href="https://www.instagram.com/prakumbhclothing?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 12,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.55)",
+                textDecoration: "none",
+                transition: "color .25s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#D4AF37")}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "rgba(255,255,255,0.55)")
+              }
+            >
+              Instagram
+            </a>
           </div>
         </div>
+        </footer>
       </div>
 
       {pageLoading && (
@@ -1606,7 +2071,8 @@ function ShopPageContent() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(255,255,255,0.85)",
+            background: "rgba(13,27,42,0.35)",
+            backdropFilter: "blur(2px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1615,14 +2081,27 @@ function ShopPageContent() {
         >
           <div
             style={{
-              width: 60,
-              height: 60,
-              border: "4px solid #ddd",
-              borderTop: "4px solid #0D1B2A",
+              width: 64,
+              height: 64,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
+              background: "#fff",
+              boxShadow: "0 10px 30px rgba(13,27,42,0.25)",
             }}
-          />
+          >
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                border: `3px solid rgba(13,27,42,0.14)`,
+                borderTop: `3px solid ${GOLD}`,
+                borderRadius: "50%",
+                animation: "spin 0.8s linear infinite",
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -1631,7 +2110,7 @@ function ShopPageContent() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.55)",
+            background: "rgba(13,27,42,0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1641,12 +2120,12 @@ function ShopPageContent() {
         >
           <div
             style={{
-              width: 360,
+              width: 380,
               maxWidth: "92vw",
               background: "#fff",
-              borderRadius: 34,
+              borderRadius: 24,
               padding: "28px 28px 32px",
-              boxShadow: "0 20px 60px rgba(0,0,0,.18)",
+              boxShadow: "0 24px 70px rgba(13,27,42,0.28)",
             }}
           >
             {/* HEADER */}
@@ -1655,30 +2134,35 @@ function ShopPageContent() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
-                marginBottom: 20,
+                marginBottom: 22,
               }}
             >
               <div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 500,
-                    letterSpacing: "0.35em",
-                    color: "#999",
-                    marginBottom: 10,
-                  }}
-                >
-                  SECURE CHECKOUT
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                  <PennantMark size={10} />
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: "0.3em",
+                      color: GOLD,
+                      textTransform: "uppercase",
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                    }}
+                  >
+                    Secure Checkout
+                  </span>
                 </div>
 
                 <h2
                   style={{
-                    fontSize: 28,
-                    fontWeight: 800,
+                    fontSize: 26,
+                    fontWeight: 700,
                     lineHeight: 1.1,
-                    letterSpacing: "-0.02em",
+                    letterSpacing: "-0.01em",
                     margin: 0,
-                    color: "#111",
+                    color: NAVY,
+                    fontFamily: "'Barlow Condensed', sans-serif",
                   }}
                 >
                   Delivery Address
@@ -1689,14 +2173,14 @@ function ShopPageContent() {
                 onClick={closeAddressModal}
                 aria-label="Close delivery address form"
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 38,
+                  height: 38,
                   borderRadius: "50%",
                   border: "none",
-                  background: "#f3f3f3",
+                  background: CREAM,
                   cursor: "pointer",
                   fontSize: 18,
-                  color: "#222",
+                  color: NAVY,
                   flexShrink: 0,
                 }}
               >
@@ -1711,6 +2195,7 @@ function ShopPageContent() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               style={ADDRESS_INPUT_STYLE}
+              className="pk-address-input"
             />
 
             <input
@@ -1719,6 +2204,7 @@ function ShopPageContent() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               style={ADDRESS_INPUT_STYLE}
+              className="pk-address-input"
             />
 
             <input
@@ -1727,6 +2213,7 @@ function ShopPageContent() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               style={ADDRESS_INPUT_STYLE}
+              className="pk-address-input"
             />
             <input
               placeholder="Landmark"
@@ -1734,6 +2221,7 @@ function ShopPageContent() {
               value={landmark}
               onChange={(e) => setLandmark(e.target.value)}
               style={ADDRESS_INPUT_STYLE}
+              className="pk-address-input"
             />
 
             {/* CITY + PINCODE */}
@@ -1751,6 +2239,7 @@ function ShopPageContent() {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 style={CITY_PINCODE_INPUT_STYLE}
+                className="pk-citypin-input"
               />
               <input
                 placeholder="Pincode"
@@ -1758,6 +2247,7 @@ function ShopPageContent() {
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value)}
                 style={CITY_PINCODE_INPUT_STYLE}
+                className="pk-citypin-input"
               />
             </div>
 
@@ -1765,17 +2255,19 @@ function ShopPageContent() {
             <div
               style={{
                 marginTop: 22,
-                background: "#f6f6f6",
-                borderRadius: 18,
+                background: CREAM,
+                borderRadius: 16,
                 padding: "18px 20px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
               }}
             >
-              <span style={{ fontSize: 17, color: "#222" }}>Total Amount</span>
+              <span style={{ fontSize: 15, color: "#666", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'Barlow Condensed', sans-serif" }}>
+                Total Amount
+              </span>
 
-              <strong style={{ fontSize: 22, fontWeight: 800, color: "#111" }}>
+              <strong style={{ fontSize: 22, fontWeight: 700, color: NAVY, fontFamily: "'Oswald', sans-serif" }}>
                 ₹{cartTotal}
               </strong>
             </div>
@@ -1789,17 +2281,27 @@ function ShopPageContent() {
                 height: 56,
                 marginTop: 22,
                 border: "none",
-                borderRadius: 18,
-                background: isFormValid ? "#111" : "#CFCFCF",
+                borderRadius: 14,
+                background: isFormValid ? NAVY : "#D8D8D8",
                 color: "#fff",
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: 700,
-                letterSpacing: ".02em",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
                 cursor: isFormValid ? "pointer" : "not-allowed",
                 opacity: isFormValid ? 1 : 0.7,
+                boxShadow: isFormValid ? "0 10px 26px rgba(13,27,42,0.28)" : "none",
+                fontFamily: "'Barlow Condensed', sans-serif",
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                if (isFormValid) e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              PLACE ORDER →
+              Place Order →
             </button>
           </div>
         </div>

@@ -101,7 +101,9 @@ const SPARK_COLORS = ["#FFD700", "#FFC107", "#fff", "#B3D9FF", "#FF9DC4", "#A8FF
 
 // Pure helper — module scope so it's never re-created per render/component instance
 function parsePrice(str) {
-  return Number((str || "0").replace(/[₹,.]/g, "").replace(".00", "")) || 0;
+  return parseFloat(
+    String(str || "0").replace(/[₹,]/g, "")
+  ) || 0;
 }
 
 function cubicBezierPoint(t, p0, p1, p2, p3) {

@@ -80,3 +80,21 @@ img {
 .related-card {
   content-visibility: auto;
 }
+@keyframes warriorMarquee {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.warrior-track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  width: max-content;
+  animation: warriorMarquee 28s linear infinite;
+  will-change: transform;
+}

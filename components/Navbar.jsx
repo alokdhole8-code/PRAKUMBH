@@ -47,7 +47,7 @@ function useIsMobile() {
 // ─── ANNOUNCEMENT BAR ────────────────────────────────────────────────────────
 export function AnnouncementBar({ hidden }) {
   const text =
-    "⚡ INDIA'S PREMIUM STREETWEAR BRAND ⚡ — NEW ARRIVALS NOW LIVE — FREE SHIPPING ABOVE ₹999 — ⚡ INDIA'S PREMIUM STREETWEAR BRAND ⚡ — NEW ARRIVALS NOW LIVE — FREE SHIPPING ABOVE ₹999 — ";
+    "⚡ INDIA'S PREMIUM STREETWEAR BRAND ⚡ — NEW ARRIVALS NOW LIVE  — ⚡ INDIA'S PREMIUM STREETWEAR BRAND ⚡ — NEW ARRIVALS NOW LIVE   — ";
   return (
     <AnimatePresence mode="wait">
       {!hidden && (
