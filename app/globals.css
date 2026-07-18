@@ -98,3 +98,28 @@ img {
   animation: warriorMarquee 28s linear infinite;
   will-change: transform;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img,
+video {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.gpu-layer {
+  transform: translate3d(0,0,0);
+  will-change: transform;
+}

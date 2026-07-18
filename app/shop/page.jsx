@@ -1496,17 +1496,26 @@ const ShopProductCard = memo(
           )}
 
           {/* IMAGE */}
-          <Image
-            src={imageSrc}
-            alt={product.name}
-            width={400}
-            height={500}
-            priority={false}
-            loading="lazy"
-            decoding="async"
-            quality={35}
-            sizes="(max-width:640px) 50vw, 25vw"
-          />
+<Image
+  src={imageSrc}
+  alt={product.name}
+  width={320}
+  height={400}
+  loading="lazy"
+  decoding="async"
+  fetchPriority="low"
+  quality={40}
+  placeholder="empty"
+  sizes="(max-width:640px) 50vw,
+         (max-width:1024px) 33vw,
+         20vw"
+  style={{
+    width: "100%",
+    height: "auto",
+    objectFit: "cover",
+    aspectRatio: "4 / 5",
+  }}
+/>
         </div>
 
         {/* INFO */}
@@ -1719,6 +1728,7 @@ function ShopPageContent() {
 
   const [sort, setSort] = useState("featured");
   const [filters, setFilters] = useState({ sizes: [], priceRange: null, inStock: false });
+  const [visibleProducts, setVisibleProducts] = useState(12);
   const lastHidden = useRef(false);
 
   // SCROLL LISTENER — already rAF-throttled and only calls setState when the
@@ -1790,6 +1800,11 @@ function ShopPageContent() {
     return list;
   }, [activeCategory, sort, filters]);
 
+
+  const displayedProducts = useMemo(
+  () => displayProducts.slice(0, visibleProducts),
+  [displayProducts, visibleProducts]
+);
   // Cart total AND quantity — each computed exactly once whenever cartItems
   // changes, then shared by CartDrawer, the address modal, and
   // handlePlaceOrder's order payload. Previously the same reduce() over
@@ -1990,12 +2005,38 @@ function ShopPageContent() {
           </motion.div>
 
           {/* GRID */}
-          <ProductGrid
-            products={displayProducts}
-            setCartOpen={setCartOpen}
-            setCartItems={setCartItems}
-            setPageLoading={setPageLoading}
-          />
+<ProductGrid
+  products={displayedProducts}
+  setCartOpen={setCartOpen}
+  setCartItems={setCartItems}
+  setPageLoading={setPageLoading}
+/>
+
+{visibleProducts < displayProducts.length && (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      marginTop: 50,
+    }}
+  >
+    <button
+      onClick={() => setVisibleProducts((v) => v + 12)}
+      style={{
+        padding: "14px 32px",
+        background: NAVY,
+        color: "#fff",
+        border: "none",
+        borderRadius: 12,
+        cursor: "pointer",
+        fontSize: 16,
+        fontWeight: 600,
+      }}
+    >
+      Load More
+    </button>
+  </div>
+)}
         </div>
 
         {/* FOOTER — column count now scales across all three breakpoints:

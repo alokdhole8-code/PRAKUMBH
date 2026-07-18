@@ -2,43 +2,38 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 
-const inputDir = "./public/clothes";
-const outputDir = "./public/clothes-optimized";
+const inputDir = "./public";
+const maxWidth = 800;
 
-async function processFolder(src, dest) {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
+async function compress(dir) {
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      await compress(fullPath);
+    } else if (/\.(webp|jpg|jpeg|png)$/i.test(file)) {
+      console.log("Compressing:", fullPath);
+
+      const img = sharp(fullPath);
+      const meta = await img.metadata();
+
+      await img
+        .resize({
+          width: Math.min(meta.width, maxWidth),
+          withoutEnlargement: true,
+        })
+        .webp({
+          quality: 55,
+          effort: 6,
+        })
+        .toFile(fullPath + ".tmp");
+
+      fs.renameSync(fullPath + ".tmp", fullPath);
+    }
   }
-
-  const items = fs.readdirSync(src);
-
-  for (const item of items) {
-    const srcPath = path.join(src, item);
-    const destPath = path.join(dest, item);
-
-    if (fs.statSync(srcPath).isDirectory()) {
-      await processFolder(srcPath, destPath);
-    } else if (item.endsWith(".webp")) {
-  console.log("Processing:", srcPath);
-
-  try {
-    await sharp(srcPath)
-      .resize({ width: 800, withoutEnlargement: true })
-      .webp({ quality: 75 })
-      .toFile(destPath);
-
-    const sizeKB = (
-      fs.statSync(destPath).size / 1024
-    ).toFixed(1);
-
-    console.log(`✅ ${srcPath} -> ${sizeKB} KB`);
-  } catch (err) {
-    console.error(`❌ BAD FILE: ${srcPath}`);
-    console.error(err.message);
-  }
-    }}
 }
 
-processFolder(inputDir, outputDir)
-  .then(() => console.log("🎉 Done"))
-  .catch(console.error);
+compress(inputDir).then(() => console.log("✅ Done"));
